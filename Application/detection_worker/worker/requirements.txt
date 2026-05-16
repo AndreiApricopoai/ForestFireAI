@@ -1,0 +1,15 @@
+# YOLO model and computer vision
+ultralytics
+opencv-python
+
+# FastAPI — the HTTP server that NestJS calls to control workers
+fastapi
+
+# ASGI server that runs the FastAPI app
+uvicorn[standard]
+
+# HTTP client — used to POST detections to NestJS and fetch cameras on startup
+requests
+
+# Reads .env file into environment variables
+python-dotenv
