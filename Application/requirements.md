@@ -9,4 +9,19 @@ For local developemnt, no deployment or aws services for now:
 - should find a way where the nest backend will store the latest prediction frame with the drawn boxes and all the connected users to the frontendapp should
     be able to receive the latest prections for the drones they are watching in their dashboard (propose some solutions for this in an effiecnt way)
 
+---
+
+AUTH & USERS:
+
+- Login with email and password — frontend validation required (email format, password min 8 chars)
+- Register with name, email, password and confirm password — frontend validation required
+- Frontend validation must be mirrored on the backend (same rules enforced server-side)
+- 3 roles: user, admin, worker
+- On register: save user to MongoDB, hash password, generate JWT, return token + user to frontend
+- On login: verify credentials, generate JWT, return token + user to frontend. Show error if invalid
+- JWT token stored in localStorage on frontend, sent as Authorization header on every request
+- After successful login or register, redirect to dashboard
+- NestJS backend must expose a GET /health endpoint returning server status
+- Python worker must call GET /health on startup — if backend is not reachable, log error and abort
+
     
