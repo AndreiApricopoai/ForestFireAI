@@ -1,0 +1,47 @@
+# Python virtual environment
+venv/
+.venv/
+env/
+.env/
+
+# Environment variables (contains secrets and local paths)
+.env
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# PyCharm project files
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# YOLO model weights — large binary files, not suited for git
+*.pt
+*.onnx
+*.torchscript
+
+# Snapshots generated at runtime by the processor
+snapshots/
+
+# Log files
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
