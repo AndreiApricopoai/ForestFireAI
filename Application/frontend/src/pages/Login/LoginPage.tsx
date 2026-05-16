@@ -19,6 +19,23 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch';
 import { loginStart, loginSuccess, loginFailure, clearError } from '../../store/slices/authSlice';
 import { authApi } from '../../api/auth/auth.api';
 
+// ── Validation helpers (mirror backend rules) ────────────────────────────────
+
+function validateEmail(value: string): string {
+  if (!value.trim()) return 'Email is required.';
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(value)) return 'Please enter a valid email address.';
+  return '';
+}
+
+function validatePassword(value: string): string {
+  if (!value) return 'Password is required.';
+  if (value.length < 8) return 'Password must be at least 8 characters.';
+  return '';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function LoginPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -28,20 +45,64 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Field-level validation error messages
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  // Whether the user has interacted with the field (only show errors after first touch)
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
   useEffect(() => {
     if (isAuthenticated) navigate('/dashboard');
     return () => { dispatch(clearError()); };
   }, [isAuthenticated, navigate, dispatch]);
 
+  // Validate on change only after the field has been touched once
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (emailTouched) setEmailError(validateEmail(value));
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (passwordTouched) setPasswordError(validatePassword(value));
+  };
+
+  // Validate on blur (when user leaves the field)
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+    setEmailError(validateEmail(email));
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordTouched(true);
+    setPasswordError(validatePassword(password));
+  };
+
+  // Run full validation before submitting
+  const isFormValid = (): boolean => {
+    const eErr = validateEmail(email);
+    const pErr = validatePassword(password);
+    setEmailError(eErr);
+    setPasswordError(pErr);
+    setEmailTouched(true);
+    setPasswordTouched(true);
+    return !eErr && !pErr;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid()) return;
+
     dispatch(loginStart());
     try {
       const res = await authApi.login({ email, password });
       dispatch(loginSuccess(res.data));
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? 'Login failed. Please try again.';
+      const message =
+        (err as { response?: { data?: { message?: string } } })
+          ?.response?.data?.message ?? 'Login failed. Please try again.';
       dispatch(loginFailure(message));
     }
   };
@@ -82,7 +143,10 @@ export default function LoginPage() {
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            onBlur={handleEmailBlur}
+            error={!!emailError}
+            helperText={emailError}
             required
             fullWidth
             autoComplete="email"
@@ -91,7 +155,10 @@ export default function LoginPage() {
             label="Password"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => handlePasswordChange(e.target.value)}
+            onBlur={handlePasswordBlur}
+            error={!!passwordError}
+            helperText={passwordError}
             required
             fullWidth
             autoComplete="current-password"
@@ -124,23 +191,13 @@ export default function LoginPage() {
 
         <Typography variant="body2" align="center" color="text.secondary">
           Don't have an account?{' '}
-          <Link
-            component="button"
-            variant="body2"
-            color="primary.light"
-            onClick={() => navigate('/register')}
-          >
+          <Link component="button" variant="body2" color="primary.light" onClick={() => navigate('/register')}>
             Create one
           </Link>
         </Typography>
 
         <Typography variant="body2" align="center" sx={{ mt: 1 }}>
-          <Link
-            component="button"
-            variant="body2"
-            color="text.secondary"
-            onClick={() => navigate('/')}
-          >
+          <Link component="button" variant="body2" color="text.secondary" onClick={() => navigate('/')}>
             ← Back to home
           </Link>
         </Typography>

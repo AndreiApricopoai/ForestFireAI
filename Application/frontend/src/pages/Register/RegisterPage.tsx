@@ -19,6 +19,35 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch';
 import { loginStart, loginSuccess, loginFailure, clearError } from '../../store/slices/authSlice';
 import { authApi } from '../../api/auth/auth.api';
 
+// ── Validation helpers (mirror backend rules exactly) ────────────────────────
+
+function validateName(value: string): string {
+  if (!value.trim()) return 'Name is required.';
+  if (value.trim().length < 2) return 'Name must be at least 2 characters.';
+  return '';
+}
+
+function validateEmail(value: string): string {
+  if (!value.trim()) return 'Email is required.';
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(value)) return 'Please enter a valid email address.';
+  return '';
+}
+
+function validatePassword(value: string): string {
+  if (!value) return 'Password is required.';
+  if (value.length < 8) return 'Password must be at least 8 characters.';
+  return '';
+}
+
+function validateConfirmPassword(password: string, confirm: string): string {
+  if (!confirm) return 'Please confirm your password.';
+  if (password !== confirm) return 'Passwords do not match.';
+  return '';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function RegisterPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -29,27 +58,82 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Field-level validation errors
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+  // Track whether each field has been interacted with
+  const [nameTouched, setNameTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirmTouched, setConfirmTouched] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) navigate('/dashboard');
     return () => { dispatch(clearError()); };
   }, [isAuthenticated, navigate, dispatch]);
 
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (nameTouched) setNameError(validateName(value));
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (emailTouched) setEmailError(validateEmail(value));
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (passwordTouched) setPasswordError(validatePassword(value));
+    // Re-validate confirm if it was already touched
+    if (confirmTouched) setConfirmPasswordError(validateConfirmPassword(value, confirmPassword));
+  };
+
+  const handleConfirmChange = (value: string) => {
+    setConfirmPassword(value);
+    if (confirmTouched) setConfirmPasswordError(validateConfirmPassword(password, value));
+  };
+
+  const handleNameBlur = () => { setNameTouched(true); setNameError(validateName(name)); };
+  const handleEmailBlur = () => { setEmailTouched(true); setEmailError(validateEmail(email)); };
+  const handlePasswordBlur = () => { setPasswordTouched(true); setPasswordError(validatePassword(password)); };
+  const handleConfirmBlur = () => { setConfirmTouched(true); setConfirmPasswordError(validateConfirmPassword(password, confirmPassword)); };
+
+  // Run all validations before submitting
+  const isFormValid = (): boolean => {
+    const nErr = validateName(name);
+    const eErr = validateEmail(email);
+    const pErr = validatePassword(password);
+    const cErr = validateConfirmPassword(password, confirmPassword);
+
+    setNameError(nErr);
+    setEmailError(eErr);
+    setPasswordError(pErr);
+    setConfirmPasswordError(cErr);
+    setNameTouched(true);
+    setEmailTouched(true);
+    setPasswordTouched(true);
+    setConfirmTouched(true);
+
+    return !nErr && !eErr && !pErr && !cErr;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      setPasswordError('Passwords do not match.');
-      return;
-    }
-    setPasswordError('');
+    if (!isFormValid()) return;
+
     dispatch(loginStart());
     try {
       const res = await authApi.register({ name, email, password });
       dispatch(loginSuccess(res.data));
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? 'Registration failed. Please try again.';
+      const message =
+        (err as { response?: { data?: { message?: string } } })
+          ?.response?.data?.message ?? 'Registration failed. Please try again.';
       dispatch(loginFailure(message));
     }
   };
@@ -79,9 +163,9 @@ export default function RegisterPage() {
           </Typography>
         </Box>
 
-        {(error || passwordError) && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => { dispatch(clearError()); setPasswordError(''); }}>
-            {passwordError || error}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => dispatch(clearError())}>
+            {error}
           </Alert>
         )}
 
@@ -89,7 +173,10 @@ export default function RegisterPage() {
           <TextField
             label="Full Name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => handleNameChange(e.target.value)}
+            onBlur={handleNameBlur}
+            error={!!nameError}
+            helperText={nameError}
             required
             fullWidth
             autoComplete="name"
@@ -98,7 +185,10 @@ export default function RegisterPage() {
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            onBlur={handleEmailBlur}
+            error={!!emailError}
+            helperText={emailError}
             required
             fullWidth
             autoComplete="email"
@@ -107,11 +197,13 @@ export default function RegisterPage() {
             label="Password"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => handlePasswordChange(e.target.value)}
+            onBlur={handlePasswordBlur}
+            error={!!passwordError}
+            helperText={passwordError || 'Minimum 8 characters'}
             required
             fullWidth
             autoComplete="new-password"
-            helperText="Minimum 8 characters"
             slotProps={{
               input: {
                 endAdornment: (
@@ -129,11 +221,13 @@ export default function RegisterPage() {
             label="Confirm Password"
             type={showPassword ? 'text' : 'password'}
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => handleConfirmChange(e.target.value)}
+            onBlur={handleConfirmBlur}
+            error={!!confirmPasswordError}
+            helperText={confirmPasswordError}
             required
             fullWidth
             autoComplete="new-password"
-            error={!!passwordError}
           />
           <Button
             type="submit"
@@ -152,23 +246,13 @@ export default function RegisterPage() {
 
         <Typography variant="body2" align="center" color="text.secondary">
           Already have an account?{' '}
-          <Link
-            component="button"
-            variant="body2"
-            color="primary.light"
-            onClick={() => navigate('/login')}
-          >
+          <Link component="button" variant="body2" color="primary.light" onClick={() => navigate('/login')}>
             Sign in
           </Link>
         </Typography>
 
         <Typography variant="body2" align="center" sx={{ mt: 1 }}>
-          <Link
-            component="button"
-            variant="body2"
-            color="text.secondary"
-            onClick={() => navigate('/')}
-          >
+          <Link component="button" variant="body2" color="text.secondary" onClick={() => navigate('/')}>
             ← Back to home
           </Link>
         </Typography>
