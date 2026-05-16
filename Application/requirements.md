@@ -11,6 +11,58 @@ For local developemnt, no deployment or aws services for now:
 
 ---
 
+CAMERAS:
+
+- Cameras collection in MongoDB. Each camera document contains:
+    id, name, location, region, sourceType (local_video / s3_video / rtsp),
+    sourceUrl (filename inside cameras/ folder), isActive, status (active/inactive/error),
+    analysisIntervalSeconds, confidenceThreshold,
+    latestDetection (embedded object, overwritten each cycle — no history):
+        { timestamp, snapshotUrl, detections: [{ class, confidence, bbox }], riskLevel }
+    createdAt, updatedAt
+
+- Python worker fetches only active cameras (isActive: true) from NestJS on startup
+- For each active camera, Python spawns one thread that loops every N seconds:
+    1. Read frame from video
+    2. Run YOLO
+    3. Save annotated image to snapshots/{cameraId}_latest.jpg  (always overwrite same file)
+    4. POST detection payload to NestJS POST /detections
+
+---
+
+REAL-TIME DETECTION FLOW (Worker → NestJS → Frontend):
+
+- Python saves annotated snapshot to disk: snapshots/{cameraId}_latest.jpg (overwrites)
+- Python POSTs detection payload to NestJS: { cameraId, timestamp, snapshotUrl, detections, riskLevel }
+- NestJS on receiving detection:
+    1. Updates camera.latestDetection in MongoDB (embedded field, single document update)
+    2. Emits Socket.IO event "detection:new" to room "camera:{cameraId}" only
+       Payload: { cameraId, snapshotUrl, detections, riskLevel, timestamp }
+- NestJS serves the snapshots/ folder as static files
+- Frontend loads snapshot image directly: GET http://localhost:3000/snapshots/{cameraId}_latest.jpg
+
+---
+
+WEBSOCKET / ROOMS ARCHITECTURE:
+
+- Each camera has its own Socket.IO room named "camera:{cameraId}"
+- On dashboard load, frontend connects to Socket.IO and emits "subscribe" with the list of
+  cameraIds currently visible on screen
+- NestJS joins that socket to the corresponding rooms
+- Frontend listens for "detection:new" events and updates only the relevant camera card
+- When the user changes filter (e.g. filter by region), frontend emits:
+    "unsubscribe" with old cameraIds
+    "subscribe" with new cameraIds
+- NestJS leaves the old rooms and joins the new ones for that socket
+- On disconnect / page close, Socket.IO automatically removes the socket from all rooms
+
+Why rooms and not broadcast:
+- Broadcast sends every detection to every connected user regardless of what they are watching
+- Rooms ensure each user only receives events for cameras they are currently viewing
+- Zero unnecessary traffic — if no one is watching a camera, its room is empty and the emit costs nothing
+
+---
+
 AUTH & USERS:
 
 - Login with email and password — frontend validation required (email format, password min 8 chars)
