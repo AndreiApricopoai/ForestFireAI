@@ -36,7 +36,8 @@ async function bootstrap() {
    * credentials: true allows cookies and Authorization headers to be sent
    */
   app.enableCors({
-    origin: 'http://localhost:5173',
+    // Allow any localhost port during development (covers Vite using 5173, 5174, etc.)
+    origin: /^http:\/\/localhost(:\d+)?$/,
     credentials: true,
   });
 
