@@ -9,11 +9,49 @@ It is responsible for:
     - Reporting the current status of all workers
 """
 
+import sys
 import requests
 
 from config import BACKEND_URL
 from detector import FireDetector
 from camera_worker import CameraWorker
+
+
+def check_backend_health():
+    """
+    Call the NestJS GET /health endpoint to confirm the backend is running.
+
+    If the backend is not reachable, we log the error and exit immediately.
+    There is no point starting camera workers if there is nowhere to send results.
+
+    Returns True if healthy, False otherwise.
+    """
+    url = f"{BACKEND_URL}/health"
+    print(f"[HealthCheck] Checking backend health at: {url}")
+
+    try:
+        response = requests.get(url, timeout=5)
+
+        if response.status_code == 200:
+            data = response.json()
+            print(f"[HealthCheck] Backend is healthy. Status: {data.get('status')} | Service: {data.get('service')}")
+            return True
+        else:
+            print(f"[HealthCheck] Backend returned unexpected status: {response.status_code}")
+            return False
+
+    except requests.exceptions.ConnectionError:
+        print(f"[HealthCheck] ERROR: Cannot connect to NestJS backend at {BACKEND_URL}")
+        print("[HealthCheck] Make sure the backend is running before starting the worker.")
+        return False
+
+    except requests.exceptions.Timeout:
+        print(f"[HealthCheck] ERROR: Health check request timed out after 5 seconds.")
+        return False
+
+    except Exception as error:
+        print(f"[HealthCheck] ERROR: Unexpected error during health check: {error}")
+        return False
 
 
 class WorkerManager:
@@ -40,9 +78,15 @@ class WorkerManager:
     def load_cameras_from_backend(self):
         """
         Called once on startup.
-        Fetches all cameras from NestJS, filters for active ones,
-        and starts a worker thread for each.
+        First checks backend health, then fetches all cameras and starts workers.
+        Aborts entirely if the backend is not reachable.
         """
+        # Health check — abort if backend is down
+        backend_is_healthy = check_backend_health()
+        if not backend_is_healthy:
+            print("[Manager] Aborting startup — backend is not available.")
+            sys.exit(1)
+
         print(f"[Manager] Fetching cameras from NestJS at: {BACKEND_URL}/cameras")
 
         try:
