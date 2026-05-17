@@ -69,7 +69,7 @@ const CAMERAS = [
     region: 'Zone A',
     sourceUrl: 'camera1.mp4',
     isActive: true,
-    analysisIntervalSeconds: 5,
+    analysisIntervalSeconds: 2.5,
     confidenceThreshold: 0.45,
   },
   {
@@ -78,7 +78,7 @@ const CAMERAS = [
     region: 'Zone B',
     sourceUrl: 'camera2.mp4',
     isActive: true,
-    analysisIntervalSeconds: 5,
+    analysisIntervalSeconds: 2.5,
     confidenceThreshold: 0.45,
   },
   {
@@ -87,7 +87,7 @@ const CAMERAS = [
     region: 'Zone C',
     sourceUrl: 'camera3.mp4',
     isActive: true,
-    analysisIntervalSeconds: 5,
+    analysisIntervalSeconds: 2.5,
     confidenceThreshold: 0.45,
   },
 ];

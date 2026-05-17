@@ -5,6 +5,7 @@ import LandingPage from '../pages/Landing/LandingPage';
 import LoginPage from '../pages/Login/LoginPage';
 import RegisterPage from '../pages/Register/RegisterPage';
 import DashboardPage from '../pages/Dashboard/DashboardPage';
+import AdminCamerasPage from '../pages/Admin/AdminCamerasPage';
 import NotFoundPage from '../pages/NotFound/NotFoundPage';
 
 const router = createBrowserRouter([
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
     element: <RegisterPage />,
   },
   {
+    // Routes accessible by any authenticated user
     element: <ProtectedRoute />,
     children: [
       {
@@ -33,6 +35,21 @@ const router = createBrowserRouter([
           {
             path: '/',
             element: <Navigate to="/dashboard" replace />,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    // Routes accessible by admin users only
+    element: <ProtectedRoute requiredRole="admin" />,
+    children: [
+      {
+        element: <Layout />,
+        children: [
+          {
+            path: '/admin/cameras',
+            element: <AdminCamerasPage />,
           },
         ],
       },

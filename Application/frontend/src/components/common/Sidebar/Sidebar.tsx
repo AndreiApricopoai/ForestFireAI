@@ -14,7 +14,7 @@ import {
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import SettingsIcon from '@mui/icons-material/Settings';
+import VideocamOffIcon from '@mui/icons-material/VideocamOff';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../../hooks/useAppDispatch';
@@ -28,7 +28,7 @@ const navItems = [
 ];
 
 const adminItems = [
-  { label: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  { label: 'Manage Cameras', icon: <VideocamOffIcon />, path: '/admin/cameras' },
 ];
 
 export default function Sidebar() {
