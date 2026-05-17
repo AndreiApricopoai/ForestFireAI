@@ -3,16 +3,24 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { CamerasModule } from './cameras/cameras.module';
+import { DetectionsModule } from './detections/detections.module';
+import { AlertsModule } from './alerts/alerts.module';
+import { EventsModule } from './websocket/events.module';
 import { HealthController } from './health/health.controller';
 
 /**
  * AppModule is the root module — it imports everything else.
  *
- * ConfigModule  — reads .env and makes values available via ConfigService
- * MongooseModule — connects to MongoDB using the URI from .env
- * AuthModule    — register + login endpoints
- * UsersModule   — user database operations
- * HealthController — GET /health (registered directly here, no separate module needed)
+ * ConfigModule     — reads .env and makes values available via ConfigService
+ * MongooseModule   — connects to MongoDB using the URI from .env
+ * AuthModule       — register + login endpoints
+ * UsersModule      — user database operations
+ * CamerasModule    — camera CRUD (GET /cameras, POST /cameras, etc.)
+ * DetectionsModule — POST /detections (receives from Python worker)
+ * AlertsModule     — alert schema + skeleton service
+ * EventsModule     — Socket.IO gateway (subscribe/unsubscribe rooms)
+ * HealthController — GET /health
  */
 @Module({
   imports: [
@@ -34,6 +42,10 @@ import { HealthController } from './health/health.controller';
 
     AuthModule,
     UsersModule,
+    CamerasModule,
+    DetectionsModule,
+    AlertsModule,
+    EventsModule,
   ],
 
   // HealthController is simple enough to register directly on the root module
