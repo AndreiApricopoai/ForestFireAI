@@ -9,6 +9,7 @@ across all camera worker threads. YOLO inference is safe to
 call from multiple threads simultaneously.
 """
 
+import numpy
 from ultralytics import YOLO
 from config import MODEL_PATH, IOU_THRESHOLD
 
@@ -23,10 +24,22 @@ class FireDetector:
         Load the YOLO model from the path defined in config.
         This happens once when the WorkerManager is created.
         Loading a model is expensive so we only do it once.
+
+        After loading we run one dummy prediction (a blank black image) to
+        force PyTorch to fully initialize all internal Conv/BN layers.
+        Without this warm-up, the very first real prediction from multiple
+        threads at the same time can hit uninitialized internal state and
+        throw 'Conv object has no attribute bn'.
         """
         print(f"[Detector] Loading YOLO model from: {MODEL_PATH}")
         self.model = YOLO(MODEL_PATH)
-        print("[Detector] Model loaded successfully.")
+
+        # Warm-up: run one silent prediction so all layers are fully initialized
+        # before any camera thread calls analyze_frame()
+        print("[Detector] Warming up model (running one dummy prediction)...")
+        blank_frame = numpy.zeros((640, 640, 3), dtype=numpy.uint8)
+        self.model.predict(source=blank_frame, conf=0.9, verbose=False)
+        print("[Detector] Model warmed up and ready.")
 
     def analyze_frame(self, frame, confidence_threshold):
         """

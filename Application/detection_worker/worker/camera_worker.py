@@ -9,7 +9,6 @@ POSTs the detection result to the NestJS backend.
 
 import os
 import threading
-import time
 from datetime import datetime, timezone
 
 import cv2
@@ -125,13 +124,18 @@ class CameraWorker:
         """
         The main processing loop — this runs inside the thread.
 
+        Strategy: instead of reading every single frame and counting, we jump
+        directly to the target frame using cap.set(). Between analyses we sleep
+        for analysis_interval seconds using _stop_event.wait() so the thread
+        wakes up immediately if stop() is called mid-sleep.
+
         Steps:
-            1. Build the full path to the video file
-            2. Open the video with OpenCV
-            3. Loop through frames
-            4. Every N seconds worth of frames: run YOLO, save snapshot, POST result
-            5. Loop the video when it reaches the end
-            6. Exit cleanly when stop() is called
+            1. Open the video
+            2. Read video properties (fps, total frames)
+            3. Jump to the current target frame → run YOLO → save → POST
+            4. Advance target frame by (fps * interval) positions
+            5. If target is past the end, loop back to frame 0
+            6. Sleep for analysis_interval seconds, then repeat
         """
 
         # Build the full path to the video file
@@ -155,44 +159,39 @@ class CameraWorker:
 
         print(f"[{self.camera_id}] Video opened: {video_path}")
 
-        # Get video properties to calculate how many frames to skip
+        # Get video properties
         fps = cap.get(cv2.CAP_PROP_FPS)
-
         if fps <= 0:
-            # Fallback if FPS is not available
             fps = 25.0
 
-        # How many frames correspond to one analysis interval
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        # How many frames to advance per interval
         # e.g. 25 fps * 5 seconds = 125 frames between each YOLO run
-        frames_between_analysis = int(fps * self.analysis_interval)
+        frames_per_interval = int(fps * self.analysis_interval)
+        if frames_per_interval <= 0:
+            frames_per_interval = 1
 
-        # Make sure we never divide by zero
-        if frames_between_analysis <= 0:
-            frames_between_analysis = 1
-
-        frame_count = 0
+        # Start at the beginning
+        current_frame_index = 0
 
         # Main processing loop — runs until stop() is called
         while not self._stop_event.is_set():
 
+            # Jump directly to the target frame position — no need to read every frame
+            cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_index)
             ret, frame = cap.read()
 
-            # If the video ended, loop back to the beginning
             if not ret:
-                print(f"[{self.camera_id}] End of video reached, looping back to start.")
-                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                frame_count = 0
+                # Frame read failed (end of file or corrupt frame) — loop back
+                print(f"[{self.camera_id}] Could not read frame {current_frame_index}, looping back to start.")
+                current_frame_index = 0
                 continue
 
-            frame_count = frame_count + 1
+            # The actual video timestamp for this frame (in milliseconds)
+            video_timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC))
 
-            # Only analyze one frame every N frames (equivalent to every N seconds)
-            if frame_count % frames_between_analysis != 0:
-                continue
-
-            # --- This block runs every N seconds ---
-
-            print(f"[{self.camera_id}] Analyzing frame at {cap.get(cv2.CAP_PROP_POS_MSEC):.0f}ms")
+            print(f"[{self.camera_id}] Analyzing frame at {video_timestamp_ms}ms (frame {current_frame_index}/{total_frames})")
 
             try:
                 # Run YOLO on this frame
@@ -200,9 +199,6 @@ class CameraWorker:
                     frame=frame,
                     confidence_threshold=self.confidence_threshold
                 )
-
-                # Get the current position in the video (in milliseconds)
-                video_timestamp_ms = int(cap.get(cv2.CAP_PROP_POS_MSEC))
 
                 # Save the annotated frame — always same filename, overwriting previous
                 self._save_snapshot(annotated_frame)
@@ -222,8 +218,18 @@ class CameraWorker:
             except Exception as error:
                 print(f"[{self.camera_id}] Error during analysis: {error}")
 
-            # Small sleep to avoid CPU spinning between frame reads when interval is very short
-            time.sleep(0.01)
+            # Advance to the next target frame
+            current_frame_index = current_frame_index + frames_per_interval
+
+            # If we've passed the end of the video, loop back to the beginning
+            if current_frame_index >= total_frames:
+                print(f"[{self.camera_id}] End of video reached, looping back to start.")
+                current_frame_index = 0
+
+            # Sleep for the real analysis interval before processing the next frame.
+            # Using _stop_event.wait() instead of time.sleep() means stop() will
+            # wake this thread up immediately instead of waiting out the full sleep.
+            self._stop_event.wait(timeout=self.analysis_interval)
 
         # Loop exited — clean up the video capture
         cap.release()
