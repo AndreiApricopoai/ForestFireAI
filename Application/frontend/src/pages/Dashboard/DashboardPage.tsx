@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -11,44 +11,18 @@ import VideocamIcon from '@mui/icons-material/Videocam';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CameraGrid from '../../components/dashboard/CameraGrid/CameraGrid';
-import { useAppSelector } from '../../hooks/useAppDispatch';
-import type { Camera, LatestDetection, RiskLevel } from '../../types/camera.types';
+import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch';
+import {
+  fetchCamerasStart,
+  fetchCamerasSuccess,
+  fetchCamerasFailure,
+  updateLatestDetection,
+} from '../../store/slices/camerasSlice';
+import { camerasApi } from '../../api/cameras/cameras.api';
+import { useSocket } from '../../hooks/useSocket';
+import type { RiskLevel } from '../../types/camera.types';
 
-const MOCK_CAMERAS: Camera[] = [
-  {
-    id: '1', name: 'Drone Alpha', location: 'Northern Zone A',
-    sourceType: 'local_video', sourceUrl: '', isActive: true,
-    status: 'active', analysisIntervalSeconds: 5, confidenceThreshold: 0.45, createdAt: '',
-  },
-  {
-    id: '2', name: 'Tower Cam B2', location: 'Eastern Ridge',
-    sourceType: 'local_video', sourceUrl: '', isActive: true,
-    status: 'active', analysisIntervalSeconds: 5, confidenceThreshold: 0.45, createdAt: '',
-  },
-  {
-    id: '3', name: 'Patrol Unit 3', location: 'Southern Valley',
-    sourceType: 'local_video', sourceUrl: '', isActive: false,
-    status: 'inactive', analysisIntervalSeconds: 5, confidenceThreshold: 0.45, createdAt: '',
-  },
-  {
-    id: '4', name: 'Drone Beta', location: 'Western Perimeter',
-    sourceType: 'local_video', sourceUrl: '', isActive: true,
-    status: 'active', analysisIntervalSeconds: 5, confidenceThreshold: 0.45, createdAt: '',
-  },
-];
-
-const MOCK_DETECTIONS: Record<string, LatestDetection> = {
-  '1': {
-    cameraId: '1', timestamp: new Date().toISOString(), videoTimestampMs: 12000,
-    snapshotUrl: null, riskLevel: 'high',
-    detections: [{ class: 'fire', confidence: 0.78, bbox: [100, 80, 300, 200] }],
-  },
-  '2': {
-    cameraId: '2', timestamp: new Date().toISOString(), videoTimestampMs: 8000,
-    snapshotUrl: null, riskLevel: 'low',
-    detections: [{ class: 'smoke', confidence: 0.52, bbox: [50, 30, 200, 150] }],
-  },
-};
+// ── Stat card component (used in the summary row) ─────────────────────────────
 
 interface StatCardProps {
   label: string;
@@ -72,52 +46,128 @@ function StatCard({ label, value, icon, color, sub }: StatCardProps) {
     >
       <Box sx={{ color, fontSize: 36, lineHeight: 1 }}>{icon}</Box>
       <Box>
-        <Typography variant="h5" sx={{ fontWeight: 700 }} color={color}>{value}</Typography>
-        <Typography variant="body2" color="text.secondary">{label}</Typography>
-        {sub && <Typography variant="caption" color="text.secondary">{sub}</Typography>}
+        <Typography variant="h5" sx={{ fontWeight: 700 }} color={color}>
+          {value}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {label}
+        </Typography>
+        {sub && (
+          <Typography variant="caption" color="text.secondary">
+            {sub}
+          </Typography>
+        )}
       </Box>
     </Paper>
   );
 }
 
-export default function DashboardPage() {
-  const { cameras: storeCameras, latestDetections: storeDetections, isLoading } = useAppSelector((s) => s.cameras);
-  const [cameras, setCameras] = useState<Camera[]>([]);
-  const [detections, setDetections] = useState<Record<string, LatestDetection>>({});
+// ── Dashboard page ─────────────────────────────────────────────────────────────
 
+export default function DashboardPage() {
+  const dispatch = useAppDispatch();
+  const { cameras, latestDetections, isLoading } = useAppSelector((s) => s.cameras);
+
+  /**
+   * Connect to the Socket.IO server.
+   * setSubscribedCameras is a stable callback — we pass it to CameraGrid
+   * which calls it whenever the set of visible cameras changes.
+   */
+  const { setSubscribedCameras } = useSocket();
+
+  /**
+   * Fetch all cameras from the backend on mount.
+   *
+   * After fetching, we also seed the Redux latestDetections map with the
+   * embedded latestDetection from each camera document. This way the cards
+   * show the last known state immediately, before the WebSocket sends anything.
+   */
   useEffect(() => {
-    if (storeCameras.length > 0) {
-      setCameras(storeCameras);
-      setDetections(storeDetections);
-    } else {
-      setCameras(MOCK_CAMERAS);
-      setDetections(MOCK_DETECTIONS);
+    async function loadCameras() {
+      dispatch(fetchCamerasStart());
+      try {
+        const response = await camerasApi.getAll();
+        const fetchedCameras = response.data;
+
+        dispatch(fetchCamerasSuccess(fetchedCameras));
+
+        // Seed initial detection state from the embedded latestDetection field.
+        // Each camera may already have a latestDetection from a previous Python run.
+        for (const camera of fetchedCameras) {
+          if (camera.latestDetection) {
+            dispatch(
+              updateLatestDetection({
+                cameraId: camera.id,
+                ...camera.latestDetection,
+              }),
+            );
+          }
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load cameras';
+        dispatch(fetchCamerasFailure(message));
+      }
     }
-  }, [storeCameras, storeDetections]);
+
+    void loadCameras();
+  }, [dispatch]);
+
+  /**
+   * Stable wrapper around setSubscribedCameras.
+   * Passed to CameraGrid as onVisibleCamerasChange.
+   * CameraGrid calls this every time the filter changes.
+   */
+  const handleVisibleCamerasChange = useCallback(
+    (ids: string[]) => {
+      setSubscribedCameras(ids);
+    },
+    [setSubscribedCameras],
+  );
+
+  // ── Derived stats ────────────────────────────────────────────────────────────
 
   const activeCameras = cameras.filter((c) => c.isActive).length;
-  const alertCount = Object.values(detections).filter(
+
+  const alertCount = Object.values(latestDetections).filter(
     (d) => d.riskLevel === 'high' || d.riskLevel === 'critical',
   ).length;
+
   const highestRisk: RiskLevel = alertCount > 0 ? 'high' : 'none';
+
+  // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+      {/* Header row */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 3,
+        }}
+      >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>Live Monitoring</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Live Monitoring
+          </Typography>
           <Typography variant="body2" color="text.secondary">
             Real-time forest fire detection overview
           </Typography>
         </Box>
         <Chip
           icon={highestRisk === 'none' ? <CheckCircleIcon /> : <WarningAmberIcon />}
-          label={highestRisk === 'none' ? 'All Clear' : `${alertCount} Alert${alertCount > 1 ? 's' : ''}`}
+          label={
+            highestRisk === 'none'
+              ? 'All Clear'
+              : `${alertCount} Alert${alertCount > 1 ? 's' : ''}`
+          }
           color={highestRisk === 'none' ? 'success' : 'error'}
           variant="outlined"
         />
       </Box>
 
+      {/* Stats row */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 4 }}>
           <StatCard
@@ -151,10 +201,12 @@ export default function DashboardPage() {
         Camera Feeds
       </Typography>
 
+      {/* Camera grid — handles filter and room subscriptions */}
       <CameraGrid
         cameras={cameras}
-        latestDetections={detections}
+        latestDetections={latestDetections}
         isLoading={isLoading}
+        onVisibleCamerasChange={handleVisibleCamerasChange}
       />
     </Box>
   );
