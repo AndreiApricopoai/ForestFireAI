@@ -6,6 +6,7 @@ import LoginPage from '../pages/Login/LoginPage';
 import RegisterPage from '../pages/Register/RegisterPage';
 import DashboardPage from '../pages/Dashboard/DashboardPage';
 import AdminCamerasPage from '../pages/Admin/AdminCamerasPage';
+import AlertsPage from '../pages/Alerts/AlertsPage';
 import NotFoundPage from '../pages/NotFound/NotFoundPage';
 
 const router = createBrowserRouter([
@@ -50,6 +51,10 @@ const router = createBrowserRouter([
           {
             path: '/admin/cameras',
             element: <AdminCamerasPage />,
+          },
+          {
+            path: '/alerts',
+            element: <AlertsPage />,
           },
         ],
       },

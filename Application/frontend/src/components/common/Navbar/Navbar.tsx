@@ -16,6 +16,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useAppDispatch';
 import { logout } from '../../../store/slices/authSlice';
+import { markAllRead } from '../../../store/slices/alertsSlice';
 
 interface Props {
   title?: string;
@@ -25,11 +26,19 @@ export default function Navbar({ title = 'Dashboard' }: Props) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user } = useAppSelector((s) => s.auth);
+  const unreadCount = useAppSelector((s) => s.alerts.unreadCount);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const isAdmin = user?.role === 'admin';
 
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
+  };
+
+  const handleAlertsClick = () => {
+    dispatch(markAllRead());
+    navigate('/alerts');
   };
 
   return (
@@ -47,11 +56,21 @@ export default function Navbar({ title = 'Dashboard' }: Props) {
           {title}
         </Typography>
 
-        <IconButton color="inherit" size="small">
-          <Badge badgeContent={0} color="error">
-            <NotificationsIcon sx={{ color: 'text.secondary' }} />
-          </Badge>
-        </IconButton>
+        {/* Bell icon — shows unread alert badge for admins only */}
+        {isAdmin && (
+          <IconButton
+            color="inherit"
+            size="small"
+            onClick={handleAlertsClick}
+            title="View alerts"
+          >
+            <Badge badgeContent={unreadCount > 0 ? unreadCount : undefined} color="error" max={99}>
+              <NotificationsIcon
+                sx={{ color: unreadCount > 0 ? 'error.light' : 'text.secondary' }}
+              />
+            </Badge>
+          </IconButton>
+        )}
 
         <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size="small">
           <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.dark', fontSize: 14 }}>

@@ -10,10 +10,10 @@ import {
   Chip,
   Divider,
   Tooltip,
+  Badge,
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import VideocamIcon from '@mui/icons-material/Videocam';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -23,18 +23,23 @@ const DRAWER_WIDTH = 240;
 
 const navItems = [
   { label: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { label: 'Cameras', icon: <VideocamIcon />, path: '/cameras' },
-  { label: 'Alerts', icon: <NotificationsIcon />, path: '/alerts' },
 ];
 
 const adminItems = [
-  { label: 'Manage Cameras', icon: <VideocamOffIcon />, path: '/admin/cameras' },
+  {
+    label: 'Alerts',
+    icon: <NotificationsActiveIcon />,
+    path: '/alerts',
+    badge: true, // show unread count badge
+  },
+  { label: 'Manage Cameras', icon: <VideocamOffIcon />, path: '/admin/cameras', badge: false },
 ];
 
 export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAppSelector((s) => s.auth);
+  const unreadCount = useAppSelector((s) => s.alerts.unreadCount);
 
   return (
     <Drawer
@@ -110,6 +115,7 @@ export default function Sidebar() {
           <List dense sx={{ px: 1 }}>
             {adminItems.map((item) => {
               const active = location.pathname === item.path;
+              const badgeCount = item.badge ? unreadCount : 0;
               return (
                 <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
                   <ListItemButton
@@ -121,7 +127,9 @@ export default function Sidebar() {
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 36, color: active ? 'primary.light' : 'text.secondary' }}>
-                      {item.icon}
+                      <Badge badgeContent={badgeCount > 0 ? badgeCount : undefined} color="error" max={99}>
+                        {item.icon}
+                      </Badge>
                     </ListItemIcon>
                     <ListItemText
                       primary={item.label}

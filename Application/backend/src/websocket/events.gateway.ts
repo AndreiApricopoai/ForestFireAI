@@ -133,6 +133,44 @@ export class EventsGateway
   }
 
   /**
+   * Frontend sends:  socket.emit('subscribeAlerts')
+   *
+   * Puts the socket into the special "admins" room.
+   * Only clients in this room will receive 'alert:new' events.
+   * The frontend calls this when it determines the user is an admin.
+   */
+  @SubscribeMessage('subscribeAlerts')
+  handleSubscribeAlerts(@ConnectedSocket() client: Socket) {
+    void client.join('admins');
+    console.log(`[WebSocket] ${client.id} joined room: admins`);
+  }
+
+  /**
+   * Called by AlertsService after a new Alert document is persisted.
+   *
+   * Emits 'alert:new' exclusively to clients in the "admins" room.
+   * Regular user clients that haven't called subscribeAlerts receive nothing.
+   *
+   * Payload mirrors the AlertRecord interface on the frontend.
+   */
+  emitNewAlert(payload: {
+    id: string;
+    cameraId: string;
+    detectionTimestamp: string;
+    type: string;
+    maxConfidence: number;
+    riskLevel: string;
+    alertSnapshotUrl: string;
+    status: string;
+    createdAt: string;
+  }) {
+    this.server.to('admins').emit('alert:new', payload);
+    console.log(
+      `[WebSocket] alert:new emitted to admins — camera: ${payload.cameraId}, type: ${payload.type}`,
+    );
+  }
+
+  /**
    * Emit a generic event to all connected clients (broadcast).
    * Used for system-wide notifications (e.g. a camera went offline).
    */
