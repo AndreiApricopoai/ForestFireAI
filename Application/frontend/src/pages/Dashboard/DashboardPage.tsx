@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import {
   Box,
   Typography,
@@ -11,6 +11,7 @@ import VideocamIcon from '@mui/icons-material/Videocam';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CameraGrid from '../../components/dashboard/CameraGrid/CameraGrid';
+import CameraDetailDialog from '../../components/dashboard/CameraDetailDialog/CameraDetailDialog';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch';
 import {
   fetchCamerasStart,
@@ -19,8 +20,8 @@ import {
   updateLatestDetection,
 } from '../../store/slices/camerasSlice';
 import { camerasApi } from '../../api/cameras/cameras.api';
-import { useSocket } from '../../hooks/useSocket';
-import type { RiskLevel } from '../../types/camera.types';
+import { useSocketContext } from '../../contexts/SocketContext';
+import type { Camera, RiskLevel } from '../../types/camera.types';
 
 // ── Stat card component (used in the summary row) ─────────────────────────────
 
@@ -68,12 +69,14 @@ export default function DashboardPage() {
   const dispatch = useAppDispatch();
   const { cameras, latestDetections, isLoading } = useAppSelector((s) => s.cameras);
 
+  // Which camera's detail dialog is open (null = closed)
+  const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
+
   /**
-   * Connect to the Socket.IO server.
-   * setSubscribedCameras is a stable callback — we pass it to CameraGrid
-   * which calls it whenever the set of visible cameras changes.
+   * Get setSubscribedCameras from the socket context.
+   * The actual socket lives in Layout so it stays alive across page navigations.
    */
-  const { setSubscribedCameras } = useSocket();
+  const { setSubscribedCameras } = useSocketContext();
 
   /**
    * Fetch all cameras from the backend on mount.
@@ -207,6 +210,13 @@ export default function DashboardPage() {
         latestDetections={latestDetections}
         isLoading={isLoading}
         onVisibleCamerasChange={handleVisibleCamerasChange}
+        onCameraClick={setSelectedCamera}
+      />
+
+      {/* Camera detail dialog — two tabs: Detection View + Live Feed */}
+      <CameraDetailDialog
+        camera={selectedCamera}
+        onClose={() => setSelectedCamera(null)}
       />
     </Box>
   );

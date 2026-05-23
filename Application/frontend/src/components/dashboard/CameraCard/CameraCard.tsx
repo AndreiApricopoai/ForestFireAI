@@ -48,6 +48,8 @@ interface Props {
   maxConfidence?: number;
   /** Total number of boxes detected in the latest frame */
   detectionCount?: number;
+  /** Called when the user clicks the card to open the detail dialog */
+  onClick?: () => void;
 }
 
 export default function CameraCard({
@@ -61,6 +63,7 @@ export default function CameraCard({
   riskLevel = 'none',
   maxConfidence,
   detectionCount,
+  onClick,
 }: Props) {
   const riskColor = RISK_COLORS[riskLevel];
   const isCritical = riskLevel === 'critical' || riskLevel === 'high';
@@ -89,6 +92,7 @@ export default function CameraCard({
 
   return (
     <Card
+      onClick={onClick}
       sx={{
         height: '100%',
         display: 'flex',

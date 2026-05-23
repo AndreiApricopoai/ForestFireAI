@@ -22,6 +22,8 @@ interface Props {
    * socket subscribes/unsubscribes from the right rooms.
    */
   onVisibleCamerasChange: (cameraIds: string[]) => void;
+  /** Called when the user clicks on a camera card */
+  onCameraClick: (camera: Camera) => void;
 }
 
 export default function CameraGrid({
@@ -29,6 +31,7 @@ export default function CameraGrid({
   latestDetections,
   isLoading,
   onVisibleCamerasChange,
+  onCameraClick,
 }: Props) {
   // Local filter state — controlled by the search input
   const [filterText, setFilterText] = useState('');
@@ -142,6 +145,7 @@ export default function CameraGrid({
                   riskLevel={detection?.riskLevel ?? camera.latestDetection?.riskLevel ?? 'none'}
                   maxConfidence={topDetection?.confidence}
                   detectionCount={detection?.detections?.length ?? camera.latestDetection?.detections?.length}
+                  onClick={() => onCameraClick(camera)}
                 />
               </Grid>
             );

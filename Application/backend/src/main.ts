@@ -70,6 +70,15 @@ async function bootstrap() {
 
   app.useStaticAssets(alertsFolder, { prefix: '/alerts' });
 
+  /**
+   * Serve the cameras/ folder under /cameras so the frontend can stream
+   * the source video files directly in a <video> element for the live-feed tab.
+   */
+  const camerasFolder =
+    process.env.CAMERAS_FOLDER ?? join(__dirname, '..', '..', 'cameras');
+
+  app.useStaticAssets(camerasFolder, { prefix: '/cameras' });
+
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
 

@@ -10,9 +10,9 @@ import {
 import { AlertsService } from './alerts.service';
 import { UpdateAlertDto } from './dto/update-alert.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../auth/enums/role.enum';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from '../common/enums/role.enum';
 
 /**
  * AlertsController — exposes read and status-update endpoints for Alert documents.
