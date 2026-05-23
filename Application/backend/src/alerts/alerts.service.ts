@@ -29,11 +29,11 @@ import { EventsGateway } from '../websocket/events.gateway';
 @Injectable()
 export class AlertsService {
   /** Minimum fire confidence to create an alert */
-  private readonly FIRE_THRESHOLD = 0.2;
+  private readonly FIRE_THRESHOLD = 0.7;
   /** Minimum smoke confidence to create an alert */
-  private readonly SMOKE_THRESHOLD = 0.2;
-  /** Minimum ms between alerts for the same camera (10 seconds for testing) */
-  private readonly COOLDOWN_MS = 10 * 1000;
+  private readonly SMOKE_THRESHOLD = 0.7;
+  /** Minimum ms between alerts for the same camera (5 minutes) */
+  private readonly COOLDOWN_MS = 5 * 60 * 1000;
 
   /**
    * In-memory map: cameraId → epoch ms of the last alert created.
