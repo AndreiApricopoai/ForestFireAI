@@ -18,7 +18,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import CloudIcon from '@mui/icons-material/Cloud';
-import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import type { Camera, LatestDetection, RiskLevel } from '../../../types/camera.types';
 import { useAppSelector } from '../../../hooks/useAppDispatch';
 
@@ -118,7 +117,15 @@ function DetectionView({ detection, camera }: DetectionViewProps) {
             <Typography variant="caption" color="text.secondary">
               Max confidence
             </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: riskColor }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                color: topDetection
+                  ? topDetection.class === 'smoke' ? '#90a4ae' : '#f44336'
+                  : 'text.primary',
+              }}
+            >
               {topDetection ? `${(topDetection.confidence * 100).toFixed(0)}%` : '—'}
             </Typography>
           </Box>
@@ -142,7 +149,7 @@ function DetectionView({ detection, camera }: DetectionViewProps) {
           </Box>
         </Stack>
 
-        {/* Confidence bar */}
+        {/* Confidence bar — color matches the class of the top detection */}
         {topDetection && (
           <LinearProgress
             variant="determinate"
@@ -152,7 +159,9 @@ function DetectionView({ detection, camera }: DetectionViewProps) {
               height: 6,
               borderRadius: 3,
               bgcolor: 'rgba(255,255,255,0.08)',
-              '& .MuiLinearProgress-bar': { bgcolor: riskColor },
+              '& .MuiLinearProgress-bar': {
+                bgcolor: topDetection.class === 'smoke' ? '#90a4ae' : '#f44336',
+              },
             }}
           />
         )}
@@ -272,12 +281,6 @@ function LiveFeed({ sourceUrl, startAtMs }: LiveFeedProps) {
         />
       </Box>
 
-      <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <PlayCircleIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-        <Typography variant="caption" color="text.secondary">
-          Playback starts at the last analysed frame position &nbsp;·&nbsp; loops when it reaches the end
-        </Typography>
-      </Box>
     </Box>
   );
 }
@@ -351,17 +354,6 @@ export default function CameraDetailDialog({ camera, onClose }: Props) {
               bgcolor: camera.isActive ? 'rgba(76,175,80,0.2)' : 'rgba(100,100,100,0.2)',
               color: camera.isActive ? '#4caf50' : '#888',
               border: `1px solid ${camera.isActive ? '#4caf50' : '#888'}44`,
-            }}
-          />
-          <Chip
-            label={RISK_LABELS[riskLevel]}
-            size="small"
-            sx={{
-              fontWeight: 700,
-              fontSize: 10,
-              bgcolor: `${riskColor}22`,
-              color: riskColor,
-              border: `1px solid ${riskColor}44`,
             }}
           />
           <IconButton size="small" onClick={onClose} sx={{ color: 'text.secondary' }}>
