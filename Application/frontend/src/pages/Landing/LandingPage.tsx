@@ -1,8 +1,8 @@
-import { Box, Button, Container, Typography, Stack, Chip } from '@mui/material';
+import { Box, Button, Container, Typography } from '@mui/material';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import VideocamIcon from '@mui/icons-material/Videocam';
-import BoltIcon from '@mui/icons-material/Bolt';
-import ShieldIcon from '@mui/icons-material/Shield';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../hooks/useAppDispatch';
 import { useEffect } from 'react';
@@ -10,18 +10,18 @@ import { useEffect } from 'react';
 const FEATURES = [
   {
     icon: <VideocamIcon />,
-    title: 'Multi-Source Monitoring',
-    desc: 'Monitor drones, static cameras and RTSP streams from a single dashboard.',
+    title: 'Camera Feed Monitoring',
+    desc: 'Connect drone footage or static camera feeds and view all streams from a single interface.',
   },
   {
-    icon: <BoltIcon />,
-    title: 'Real-Time AI Detection',
-    desc: 'YOLOv8-powered fire and smoke detection, analyzed every 5 seconds per feed.',
+    icon: <QueryStatsIcon />,
+    title: 'Automated Detection',
+    desc: 'Each feed is periodically analysed by a trained model to identify fire and smoke in frames.',
   },
   {
-    icon: <ShieldIcon />,
-    title: 'Instant Alerts',
-    desc: 'Automated alert system triggers when fire or smoke confidence exceeds thresholds.',
+    icon: <NotificationsIcon />,
+    title: 'Threshold-Based Alerts',
+    desc: 'An alert is recorded and sent when detection confidence exceeds the configured threshold.',
   },
 ];
 
@@ -42,6 +42,7 @@ export default function LandingPage() {
         flexDirection: 'column',
       }}
     >
+      {/* ── Navbar ── */}
       <Box
         component="nav"
         sx={{
@@ -49,78 +50,73 @@ export default function LandingPage() {
           py: 2,
           display: 'flex',
           alignItems: 'center',
-          borderBottom: '1px solid rgba(46,125,50,0.15)',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
         }}
       >
-        <LocalFireDepartmentIcon sx={{ color: 'secondary.main', mr: 1 }} />
-        <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary.light">
+        <LocalFireDepartmentIcon sx={{ color: '#ff0000', mr: 1, fontSize: 20 }} />
+        <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
           ForestFire AI
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
-        <Button variant="text" color="inherit" onClick={() => navigate('/login')} sx={{ mr: 1 }}>
+        <Button
+          variant="text"
+          onClick={() => navigate('/login')}
+          sx={{ mr: 1, color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
+        >
           Login
         </Button>
-        <Button variant="contained" color="primary" onClick={() => navigate('/register')}>
-          Get Started
+        <Button
+          variant="outlined"
+          onClick={() => navigate('/register')}
+          sx={{
+            borderColor: 'rgba(255,255,255,0.2)',
+            color: 'text.primary',
+            '&:hover': { borderColor: 'rgba(255,255,255,0.5)', bgcolor: 'rgba(255,255,255,0.04)' },
+          }}
+        >
+          Register
         </Button>
       </Box>
 
-      <Container maxWidth="lg" sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', py: 8 }}>
-        <Box sx={{ textAlign: 'center', mb: 8 }}>
-          <Chip
-            icon={<LocalFireDepartmentIcon />}
-            label="YOLOv8 Powered"
-            color="secondary"
-            size="small"
-            sx={{ mb: 3, fontWeight: 600 }}
-          />
+      {/* ── Hero ── */}
+      <Container
+        maxWidth="lg"
+        sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', py: 10 }}
+      >
+        <Box sx={{ textAlign: 'center', mb: 10 }}>
           <Typography
             variant="h2"
             sx={{
-              fontWeight: 800,
-              mb: 2,
-              background: 'linear-gradient(135deg, #4caf50 0%, #ff6f00 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontSize: { xs: '2.2rem', md: '3.5rem' },
+              fontWeight: 700,
+              mb: 2.5,
+              color: 'text.primary',
+              fontSize: { xs: '2rem', md: '3.2rem' },
+              letterSpacing: '-0.5px',
             }}
           >
-            Forest Fire Detection
-            <br />
-            at Scale
+            Forest Fire Detection System
           </Typography>
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 4, maxWidth: 560, mx: 'auto', fontWeight: 400 }}>
-            Real-time AI monitoring platform for drone and camera feeds.
-            Detect fire and smoke before it spreads.
+          <Typography
+            variant="h6"
+            sx={{
+              color: 'text.secondary',
+              maxWidth: 520,
+              mx: 'auto',
+              fontWeight: 400,
+              lineHeight: 1.7,
+            }}
+          >
+            A platform for real-time fire and smoke detection
+            across drone and camera feeds using computer vision.
           </Typography>
-          <Stack direction="row" spacing={2} sx={{ justifyContent: 'center' }}>
-            <Button
-              variant="contained"
-              size="large"
-              color="primary"
-              onClick={() => navigate('/register')}
-              sx={{ px: 4 }}
-            >
-              Start Monitoring
-            </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              color="primary"
-              onClick={() => navigate('/login')}
-              sx={{ px: 4 }}
-            >
-              Sign In
-            </Button>
-          </Stack>
         </Box>
 
+        {/* ── Feature cards ── */}
         <Box
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-            gap: 3,
+            gap: 2.5,
           }}
         >
           {FEATURES.map((f) => (
@@ -128,19 +124,22 @@ export default function LandingPage() {
               key={f.title}
               sx={{
                 p: 3,
-                borderRadius: 3,
-                border: '1px solid rgba(46,125,50,0.2)',
+                borderRadius: 2,
+                border: '1px solid rgba(255,255,255,0.07)',
                 bgcolor: 'background.paper',
                 textAlign: 'center',
               }}
             >
-              <Box sx={{ color: 'primary.light', mb: 1.5, '& svg': { fontSize: 36 } }}>
+              <Box sx={{ color: 'text.secondary', mb: 1.5, '& svg': { fontSize: 30 } }}>
                 {f.icon}
               </Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }} gutterBottom>
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 700, color: 'text.primary', mb: 0.75, fontSize: 13 }}
+              >
                 {f.title}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
                 {f.desc}
               </Typography>
             </Box>
@@ -148,7 +147,8 @@ export default function LandingPage() {
         </Box>
       </Container>
 
-      <Box sx={{ textAlign: 'center', py: 3, borderTop: '1px solid rgba(46,125,50,0.1)' }}>
+      {/* ── Footer ── */}
+      <Box sx={{ textAlign: 'center', py: 3, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <Typography variant="caption" color="text.secondary">
           ForestFire AI — Dissertation Project © 2026
         </Typography>

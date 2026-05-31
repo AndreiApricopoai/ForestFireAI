@@ -47,7 +47,7 @@ export default function Navbar({ title = 'Dashboard' }: Props) {
       elevation={0}
       sx={{
         bgcolor: 'background.paper',
-        borderBottom: '1px solid rgba(46, 125, 50, 0.2)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
         zIndex: (theme) => theme.zIndex.drawer - 1,
       }}
     >

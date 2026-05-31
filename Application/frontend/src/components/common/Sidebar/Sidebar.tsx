@@ -26,12 +26,7 @@ const navItems = [
 ];
 
 const adminItems = [
-  {
-    label: 'Alerts',
-    icon: <NotificationsActiveIcon />,
-    path: '/alerts',
-    badge: true, // show unread count badge
-  },
+  { label: 'Alerts', icon: <NotificationsActiveIcon />, path: '/alerts', badge: true },
   { label: 'Manage Cameras', icon: <VideocamOffIcon />, path: '/admin/cameras', badge: false },
 ];
 
@@ -51,14 +46,15 @@ export default function Sidebar() {
           width: DRAWER_WIDTH,
           boxSizing: 'border-box',
           bgcolor: 'background.paper',
-          borderRight: '1px solid rgba(46, 125, 50, 0.2)',
+          borderRight: '1px solid rgba(255,255,255,0.07)',
         },
       }}
     >
+      {/* Logo */}
       <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <LocalFireDepartmentIcon sx={{ color: 'secondary.main', fontSize: 28 }} />
+        <LocalFireDepartmentIcon sx={{ color: '#e53935', fontSize: 22 }} />
         <Box>
-          <Typography variant="subtitle1" color="primary.light" sx={{ fontWeight: 700, lineHeight: 1.1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.1, color: 'text.primary' }}>
             ForestFire
           </Typography>
           <Typography variant="caption" color="text.secondary">
@@ -67,10 +63,10 @@ export default function Sidebar() {
         </Box>
       </Box>
 
-      <Divider sx={{ borderColor: 'rgba(46,125,50,0.2)' }} />
+      <Divider />
 
       <Box sx={{ px: 1.5, py: 1 }}>
-        <Typography variant="caption" color="text.secondary" sx={{ px: 1, textTransform: 'uppercase', letterSpacing: 1 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ px: 1, textTransform: 'uppercase', letterSpacing: 1, fontSize: 10 }}>
           Navigation
         </Typography>
       </Box>
@@ -86,17 +82,21 @@ export default function Sidebar() {
                 sx={{
                   borderRadius: 2,
                   '&.Mui-selected': {
-                    bgcolor: 'rgba(46, 125, 50, 0.2)',
-                    '&:hover': { bgcolor: 'rgba(46, 125, 50, 0.28)' },
+                    bgcolor: 'rgba(255,255,255,0.07)',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 36, color: active ? 'primary.light' : 'text.secondary' }}>
+                <ListItemIcon sx={{ minWidth: 36, color: active ? 'text.primary' : 'text.secondary' }}>
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText
                   primary={item.label}
-                  slotProps={{ primary: { sx: { fontSize: 14, color: active ? 'primary.light' : 'text.primary' } } }}
+                  slotProps={{
+                    primary: {
+                      sx: { fontSize: 14, color: active ? 'text.primary' : 'text.secondary' },
+                    },
+                  }}
                 />
               </ListItemButton>
             </ListItem>
@@ -106,9 +106,9 @@ export default function Sidebar() {
 
       {user?.role === 'admin' && (
         <>
-          <Divider sx={{ borderColor: 'rgba(46,125,50,0.2)', my: 1 }} />
+          <Divider sx={{ my: 1 }} />
           <Box sx={{ px: 1.5, py: 0.5 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ px: 1, textTransform: 'uppercase', letterSpacing: 1 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ px: 1, textTransform: 'uppercase', letterSpacing: 1, fontSize: 10 }}>
               Admin
             </Typography>
           </Box>
@@ -123,17 +123,21 @@ export default function Sidebar() {
                     selected={active}
                     sx={{
                       borderRadius: 2,
-                      '&.Mui-selected': { bgcolor: 'rgba(46, 125, 50, 0.2)' },
+                      '&.Mui-selected': { bgcolor: 'rgba(255,255,255,0.07)' },
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 36, color: active ? 'primary.light' : 'text.secondary' }}>
+                    <ListItemIcon sx={{ minWidth: 36, color: active ? 'text.primary' : 'text.secondary' }}>
                       <Badge badgeContent={badgeCount > 0 ? badgeCount : undefined} color="error" max={99}>
                         {item.icon}
                       </Badge>
                     </ListItemIcon>
                     <ListItemText
                       primary={item.label}
-                      slotProps={{ primary: { sx: { fontSize: 14 } } }}
+                      slotProps={{
+                        primary: {
+                          sx: { fontSize: 14, color: active ? 'text.primary' : 'text.secondary' },
+                        },
+                      }}
                     />
                   </ListItemButton>
                 </ListItem>
@@ -143,7 +147,8 @@ export default function Sidebar() {
         </>
       )}
 
-      <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid rgba(46,125,50,0.2)' }}>
+      {/* User info at bottom */}
+      <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         <Tooltip title={user?.email ?? ''}>
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
@@ -152,8 +157,14 @@ export default function Sidebar() {
             <Chip
               label={user?.role === 'admin' ? 'Admin' : 'User'}
               size="small"
-              color={user?.role === 'admin' ? 'secondary' : 'primary'}
-              sx={{ mt: 0.5, height: 20, fontSize: 11 }}
+              sx={{
+                mt: 0.5,
+                height: 20,
+                fontSize: 11,
+                bgcolor: 'rgba(255,255,255,0.08)',
+                color: 'text.secondary',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
             />
           </Box>
         </Tooltip>

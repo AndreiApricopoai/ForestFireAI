@@ -4,29 +4,30 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#2e7d32',
-      light: '#4caf50',
-      dark: '#1b5e20',
+      main: '#d0d0d0',
+      light: '#ffffff',
+      dark: '#9e9e9e',
     },
     secondary: {
-      main: '#ff6f00',
-      light: '#ffa000',
-      dark: '#e65100',
+      main: '#888888',
+      light: '#aaaaaa',
+      dark: '#555555',
     },
     error: {
       main: '#d32f2f',
     },
     warning: {
-      main: '#f57c00',
+      main: '#e65100',
     },
     background: {
-      default: '#0a0e0a',
-      paper: '#111711',
+      default: '#0a0a0a',
+      paper: '#111111',
     },
     text: {
-      primary: '#e8f5e9',
-      secondary: '#a5d6a7',
+      primary: '#f0f0f0',
+      secondary: '#888888',
     },
+    divider: 'rgba(255,255,255,0.08)',
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -54,7 +55,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          border: '1px solid rgba(46, 125, 50, 0.2)',
+          border: '1px solid rgba(255,255,255,0.08)',
         },
       },
     },
@@ -62,6 +63,13 @@ const theme = createTheme({
       defaultProps: {
         variant: 'outlined',
         size: 'small',
+      },
+    },
+    MuiDivider: {
+      styleOverrides: {
+        root: {
+          borderColor: 'rgba(255,255,255,0.08)',
+        },
       },
     },
   },
