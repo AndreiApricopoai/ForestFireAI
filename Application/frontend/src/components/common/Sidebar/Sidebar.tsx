@@ -7,17 +7,19 @@ import {
   ListItemText,
   Box,
   Typography,
-  Chip,
   Divider,
-  Tooltip,
   Badge,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../../../hooks/useAppDispatch';
+import { useAppDispatch, useAppSelector } from '../../../hooks/useAppDispatch';
+import { logout } from '../../../store/slices/authSlice';
 
 const DRAWER_WIDTH = 240;
 
@@ -33,8 +35,14 @@ const adminItems = [
 export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => s.auth);
   const unreadCount = useAppSelector((s) => s.alerts.unreadCount);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
 
   return (
     <Drawer
@@ -51,13 +59,13 @@ export default function Sidebar() {
       }}
     >
       {/* Logo */}
-      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <LocalFireDepartmentIcon sx={{ color: '#e53935', fontSize: 22 }} />
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.1, color: 'text.primary' }}>
+      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.5, height: 64 }}>
+        <LocalFireDepartmentIcon sx={{ color: '#ff0000', fontSize: 22, flexShrink: 0 }} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, color: 'text.primary' }}>
             ForestFire
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>
             AI Monitor
           </Typography>
         </Box>
@@ -147,27 +155,37 @@ export default function Sidebar() {
         </>
       )}
 
-      {/* User info at bottom */}
-      <Box sx={{ mt: 'auto', p: 2, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-        <Tooltip title={user?.email ?? ''}>
-          <Box>
-            <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+      {/* User info + logout at bottom */}
+      <Box sx={{ mt: 'auto', px: 2, py: 1.5, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }} noWrap>
               {user?.name}
             </Typography>
-            <Chip
-              label={user?.role === 'admin' ? 'Admin' : 'User'}
-              size="small"
+            <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+              {user?.email}
+            </Typography>
+            <Typography
+              variant="caption"
               sx={{
-                mt: 0.5,
-                height: 20,
-                fontSize: 11,
-                bgcolor: 'rgba(255,255,255,0.08)',
-                color: 'text.secondary',
-                border: '1px solid rgba(255,255,255,0.1)',
+                color: user?.role === 'admin' ? 'rgba(229,57,53,0.85)' : 'text.secondary',
+                fontWeight: 500,
+                letterSpacing: 0.3,
               }}
-            />
+            >
+              {user?.role === 'admin' ? 'Administrator' : 'User'}
+            </Typography>
           </Box>
-        </Tooltip>
+          <Tooltip title="Logout">
+            <IconButton
+              size="small"
+              onClick={handleLogout}
+              sx={{ color: 'text.secondary', '&:hover': { color: 'error.light' } }}
+            >
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
     </Drawer>
   );

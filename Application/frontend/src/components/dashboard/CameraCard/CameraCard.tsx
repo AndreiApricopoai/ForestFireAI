@@ -8,7 +8,8 @@ import {
   LinearProgress,
 } from '@mui/material';
 import VideocamIcon from '@mui/icons-material/Videocam';
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import type { RiskLevel } from '../../../types/camera.types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
@@ -152,10 +153,13 @@ export default function CameraCard({
           />
         </Box>
 
-        {/* Fire icon badge for high / critical risk */}
+        {/* Warning icon for high / critical risk */}
         {isCritical && (
           <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
-            <LocalFireDepartmentIcon sx={{ color: riskColor, fontSize: 22 }} />
+            {riskLevel === 'critical'
+              ? <ReportProblemIcon sx={{ color: riskColor, fontSize: 22 }} />
+              : <WarningAmberIcon sx={{ color: riskColor, fontSize: 22 }} />
+            }
           </Box>
         )}
 

@@ -4,12 +4,11 @@ import {
   Typography,
   Grid,
   Paper,
-  Chip,
+  Divider,
+  Stack,
 } from '@mui/material';
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import VideocamIcon from '@mui/icons-material/Videocam';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import CameraGrid from '../../components/dashboard/CameraGrid/CameraGrid';
 import CameraDetailDialog from '../../components/dashboard/CameraDetailDialog/CameraDetailDialog';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch';
@@ -19,46 +18,108 @@ import {
   fetchCamerasFailure,
   updateLatestDetection,
 } from '../../store/slices/camerasSlice';
+import {
+  fetchAlertsStart,
+  fetchAlertsSuccess,
+  fetchAlertsFailure,
+} from '../../store/slices/alertsSlice';
 import { camerasApi } from '../../api/cameras/cameras.api';
+import { alertsApi } from '../../api/alerts/alerts.api';
 import { useSocketContext } from '../../contexts/SocketContext';
-import type { Camera, RiskLevel } from '../../types/camera.types';
+import type { Camera } from '../../types/camera.types';
 
-// ── Stat card component (used in the summary row) ─────────────────────────────
+// ── Risk level config ──────────────────────────────────────────────────────────
 
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  icon: React.ReactNode;
-  color: string;
-  sub?: string;
+const RISK_ORDER = ['critical', 'high', 'medium', 'low'] as const;
+const RISK_COLORS: Record<string, string> = {
+  critical: '#b71c1c',
+  high:     '#f44336',
+  medium:   '#ff9800',
+  low:      '#8bc34a',
+};
+
+// ── Cameras stat card ──────────────────────────────────────────────────────────
+
+interface CamerasCardProps {
+  total: number;
+  active: number;
 }
 
-function StatCard({ label, value, icon, color, sub }: StatCardProps) {
+function CamerasCard({ total, active }: CamerasCardProps) {
+  const inactive = total - active;
   return (
-    <Paper
-      sx={{
-        p: 2.5,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        border: `1px solid ${color}33`,
-        bgcolor: `${color}0a`,
-      }}
-    >
-      <Box sx={{ color, fontSize: 36, lineHeight: 1 }}>{icon}</Box>
-      <Box>
-        <Typography variant="h5" sx={{ fontWeight: 700 }} color={color}>
-          {value}
+    <Paper sx={{ px: 2.5, py: 2, border: '1px solid rgba(255,255,255,0.07)', bgcolor: 'background.paper' }}>
+      {/* Header row: icon + count + label */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+        <VideocamIcon sx={{ fontSize: 28, color: '#64b5f6', flexShrink: 0 }} />
+        <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1, color: 'text.primary' }}>
+          {total}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {label}
+          Total cameras
         </Typography>
-        {sub && (
-          <Typography variant="caption" color="text.secondary">
-            {sub}
-          </Typography>
-        )}
       </Box>
+
+      <Divider sx={{ mb: 1.5 }} />
+
+      {/* Breakdown */}
+      <Stack direction="row" spacing={3}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: '#4caf50' }}>{active}</Typography>
+          <Typography variant="caption" color="text.secondary">active</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary' }}>{inactive}</Typography>
+          <Typography variant="caption" color="text.secondary">inactive</Typography>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+}
+
+// ── Alerts stat card ───────────────────────────────────────────────────────────
+
+interface AlertsCardProps {
+  total: number;
+  byRisk: Record<string, number>;
+}
+
+function AlertsCard({ total, byRisk }: AlertsCardProps) {
+  const breakdown = RISK_ORDER.filter((r) => (byRisk[r] ?? 0) > 0);
+
+  return (
+    <Paper sx={{ px: 2.5, py: 2, border: '1px solid rgba(255,255,255,0.07)', bgcolor: 'background.paper' }}>
+      {/* Header row: icon + count + label */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+        <NotificationsNoneIcon sx={{ fontSize: 28, color: total > 0 ? '#f44336' : 'text.secondary', flexShrink: 0 }} />
+        <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1, color: total > 0 ? '#f44336' : 'text.primary' }}>
+          {total}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Unreviewed alerts
+        </Typography>
+      </Box>
+
+      <Divider sx={{ mb: 1.5 }} />
+
+      {/* Risk breakdown — all inline */}
+      {breakdown.length === 0 ? (
+        <Typography variant="caption" color="text.secondary">No alerts recorded yet</Typography>
+      ) : (
+        <Stack direction="row" spacing={2.5} sx={{ flexWrap: 'wrap' }}>
+          {breakdown.map((r) => (
+            <Box key={r} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: RISK_COLORS[r], flexShrink: 0 }} />
+              <Typography variant="body2" sx={{ fontWeight: 700, color: RISK_COLORS[r] }}>
+                {byRisk[r]}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>
+                {r}
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
+      )}
     </Paper>
   );
 }
@@ -68,143 +129,95 @@ function StatCard({ label, value, icon, color, sub }: StatCardProps) {
 export default function DashboardPage() {
   const dispatch = useAppDispatch();
   const { cameras, latestDetections, isLoading } = useAppSelector((s) => s.cameras);
+  const { alerts } = useAppSelector((s) => s.alerts);
+  const { user } = useAppSelector((s) => s.auth);
+  const isAdmin = user?.role === 'admin';
 
-  // Which camera's detail dialog is open (null = closed)
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
-
-  /**
-   * Get setSubscribedCameras from the socket context.
-   * The actual socket lives in Layout so it stays alive across page navigations.
-   */
   const { setSubscribedCameras } = useSocketContext();
 
-  /**
-   * Fetch all cameras from the backend on mount.
-   *
-   * After fetching, we also seed the Redux latestDetections map with the
-   * embedded latestDetection from each camera document. This way the cards
-   * show the last known state immediately, before the WebSocket sends anything.
-   */
+  // Load cameras on mount
   useEffect(() => {
     async function loadCameras() {
       dispatch(fetchCamerasStart());
       try {
         const response = await camerasApi.getAll();
         const fetchedCameras = response.data;
-
         dispatch(fetchCamerasSuccess(fetchedCameras));
-
-        // Seed initial detection state from the embedded latestDetection field.
-        // Each camera may already have a latestDetection from a previous Python run.
         for (const camera of fetchedCameras) {
           if (camera.latestDetection) {
-            dispatch(
-              updateLatestDetection({
-                cameraId: camera.id,
-                ...camera.latestDetection,
-              }),
-            );
+            dispatch(updateLatestDetection({ cameraId: camera.id, ...camera.latestDetection }));
           }
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load cameras';
-        dispatch(fetchCamerasFailure(message));
+        dispatch(fetchCamerasFailure(err instanceof Error ? err.message : 'Failed to load cameras'));
       }
     }
-
     void loadCameras();
   }, [dispatch]);
 
-  /**
-   * Stable wrapper around setSubscribedCameras.
-   * Passed to CameraGrid as onVisibleCamerasChange.
-   * CameraGrid calls this every time the filter changes.
-   */
+  // Load alerts on mount (admin only) — populates the risk breakdown card
+  useEffect(() => {
+    if (!isAdmin) return;
+    dispatch(fetchAlertsStart());
+    alertsApi
+      .getAll()
+      .then((res) => dispatch(fetchAlertsSuccess(res.data)))
+      .catch((err: unknown) => {
+        dispatch(fetchAlertsFailure(err instanceof Error ? err.message : 'Failed to load alerts'));
+      });
+  }, [dispatch, isAdmin]);
+
   const handleVisibleCamerasChange = useCallback(
-    (ids: string[]) => {
-      setSubscribedCameras(ids);
-    },
+    (ids: string[]) => setSubscribedCameras(ids),
     [setSubscribedCameras],
   );
 
-  // ── Derived stats ────────────────────────────────────────────────────────────
+  // ── Derived stats ─────────────────────────────────────────────────────────────
 
   const activeCameras = cameras.filter((c) => c.isActive).length;
 
-  const alertCount = Object.values(latestDetections).filter(
-    (d) => d.riskLevel === 'high' || d.riskLevel === 'critical',
-  ).length;
+  // Only count pending + acknowledged alerts (exclude resolved)
+  const openAlerts = alerts.filter((a) => a.status !== 'resolved');
 
-  const highestRisk: RiskLevel = alertCount > 0 ? 'high' : 'none';
+  const alertsByRisk: Record<string, number> = {};
+  for (const alert of openAlerts) {
+    if (alert.riskLevel) {
+      alertsByRisk[alert.riskLevel] = (alertsByRisk[alert.riskLevel] ?? 0) + 1;
+    }
+  }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
     <Box>
-      {/* Header row */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          mb: 3,
-        }}
-      >
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Live Monitoring
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Real-time forest fire detection overview
-          </Typography>
-        </Box>
-        <Chip
-          icon={highestRisk === 'none' ? <CheckCircleIcon /> : <WarningAmberIcon />}
-          label={
-            highestRisk === 'none'
-              ? 'All Clear'
-              : `${alertCount} Alert${alertCount > 1 ? 's' : ''}`
-          }
-          color={highestRisk === 'none' ? 'success' : 'error'}
-          variant="outlined"
-        />
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          Live Monitoring
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Real-time forest fire detection overview
+        </Typography>
       </Box>
 
-      {/* Stats row */}
+      {/* Stat cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard
-            label="Active Cameras"
-            value={`${activeCameras} / ${cameras.length}`}
-            icon={<VideocamIcon fontSize="inherit" />}
-            color="#4caf50"
-          />
+        <Grid size={{ xs: 12, sm: isAdmin ? 6 : 12 }}>
+          <CamerasCard total={cameras.length} active={activeCameras} />
         </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard
-            label="Active Alerts"
-            value={alertCount}
-            icon={<LocalFireDepartmentIcon fontSize="inherit" />}
-            color={alertCount > 0 ? '#f44336' : '#4caf50'}
-            sub={alertCount > 0 ? 'Requires attention' : 'No active alerts'}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <StatCard
-            label="Analysis Interval"
-            value="5s"
-            icon={<CheckCircleIcon fontSize="inherit" />}
-            color="#2196f3"
-            sub="Per camera feed"
-          />
-        </Grid>
+
+        {isAdmin && (
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <AlertsCard total={openAlerts.length} byRisk={alertsByRisk} />
+          </Grid>
+        )}
       </Grid>
 
       <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
         Camera Feeds
       </Typography>
 
-      {/* Camera grid — handles filter and room subscriptions */}
       <CameraGrid
         cameras={cameras}
         latestDetections={latestDetections}
@@ -213,7 +226,6 @@ export default function DashboardPage() {
         onCameraClick={setSelectedCamera}
       />
 
-      {/* Camera detail dialog — two tabs: Detection View + Live Feed */}
       <CameraDetailDialog
         camera={selectedCamera}
         onClose={() => setSelectedCamera(null)}

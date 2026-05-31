@@ -6,23 +6,20 @@ import {
   CircularProgress,
   TextField,
   InputAdornment,
+  Pagination,
 } from '@mui/material';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';
 import SearchIcon from '@mui/icons-material/Search';
 import CameraCard from '../CameraCard/CameraCard';
 import type { Camera, LatestDetection } from '../../../types/camera.types';
 
+const PAGE_SIZE = 10;
+
 interface Props {
   cameras: Camera[];
   latestDetections: Record<string, LatestDetection>;
   isLoading: boolean;
-  /**
-   * Callback from the parent (DashboardPage) that holds the socket connection.
-   * CameraGrid calls this whenever the set of visible cameras changes so the
-   * socket subscribes/unsubscribes from the right rooms.
-   */
   onVisibleCamerasChange: (cameraIds: string[]) => void;
-  /** Called when the user clicks on a camera card */
   onCameraClick: (camera: Camera) => void;
 }
 
@@ -33,13 +30,10 @@ export default function CameraGrid({
   onVisibleCamerasChange,
   onCameraClick,
 }: Props) {
-  // Local filter state — controlled by the search input
   const [filterText, setFilterText] = useState('');
+  const [page, setPage] = useState(1);
 
-  /**
-   * Derive the filtered list from the full cameras array + current filter.
-   * Matching is case-insensitive and checks name, location, and region.
-   */
+  // Filter by name, location, region
   const filteredCameras = cameras.filter((cam) => {
     if (!filterText.trim()) return true;
     const query = filterText.toLowerCase();
@@ -50,19 +44,21 @@ export default function CameraGrid({
     );
   });
 
-  /**
-   * Whenever the filtered list changes, tell the parent which camera IDs are
-   * currently visible. The parent socket hook will then diff this list against
-   * the previously subscribed set and send subscribe/unsubscribe to NestJS.
-   *
-   * This runs on:
-   *   - Initial mount (subscribes to all visible cameras)
-   *   - Every time the user types in the filter input
-   *   - Every time the cameras array changes (e.g. after initial API fetch)
-   */
+  // Reset to page 1 whenever filter changes
   useEffect(() => {
-    onVisibleCamerasChange(filteredCameras.map((cam) => cam.id));
-  }, [filteredCameras, onVisibleCamerasChange]);
+    setPage(1);
+  }, [filterText]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCameras.length / PAGE_SIZE));
+
+  // Cameras visible on the current page
+  const paginated = filteredCameras.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // Subscribe only to cameras currently on screen
+  useEffect(() => {
+    onVisibleCamerasChange(paginated.map((cam) => cam.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paginated.map((c) => c.id).join(','), onVisibleCamerasChange]);
 
   if (isLoading) {
     return (
@@ -74,8 +70,8 @@ export default function CameraGrid({
 
   return (
     <Box>
-      {/* ── Filter bar ── */}
-      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+      {/* Filter bar — no camera count */}
+      <Box sx={{ mb: 2 }}>
         <TextField
           size="small"
           placeholder="Filter by name, location or region…"
@@ -92,25 +88,20 @@ export default function CameraGrid({
           }}
           sx={{ width: 320 }}
         />
-        <Typography variant="body2" color="text.secondary">
-          {filteredCameras.length === cameras.length
-            ? `${cameras.length} camera${cameras.length !== 1 ? 's' : ''}`
-            : `${filteredCameras.length} of ${cameras.length}`}
-        </Typography>
       </Box>
 
-      {/* ── No cameras at all ── */}
+      {/* No cameras configured */}
       {cameras.length === 0 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 10, gap: 2 }}>
-          <VideocamOffIcon sx={{ fontSize: 64, color: 'rgba(76,175,80,0.2)' }} />
+          <VideocamOffIcon sx={{ fontSize: 64, color: 'rgba(255,255,255,0.1)' }} />
           <Typography color="text.secondary">No cameras configured yet.</Typography>
         </Box>
       )}
 
-      {/* ── Filter returned no results ── */}
+      {/* Filter returned nothing */}
       {cameras.length > 0 && filteredCameras.length === 0 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 8, gap: 1 }}>
-          <VideocamOffIcon sx={{ fontSize: 48, color: 'rgba(76,175,80,0.2)' }} />
+          <VideocamOffIcon sx={{ fontSize: 48, color: 'rgba(255,255,255,0.1)' }} />
           <Typography color="text.secondary">
             No cameras match &quot;{filterText}&quot;
           </Typography>
@@ -120,13 +111,12 @@ export default function CameraGrid({
         </Box>
       )}
 
-      {/* ── Camera grid ── */}
-      {filteredCameras.length > 0 && (
+      {/* Camera grid */}
+      {paginated.length > 0 && (
         <Grid container spacing={2}>
-          {filteredCameras.map((camera) => {
+          {paginated.map((camera) => {
             const detection = latestDetections[camera.id];
 
-            // Find the single detection with the highest confidence
             const topDetection = detection?.detections?.reduce(
               (best, d) => (d.confidence > (best?.confidence ?? 0) ? d : best),
               detection.detections[0],
@@ -151,6 +141,22 @@ export default function CameraGrid({
             );
           })}
         </Grid>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(_, v) => setPage(v)}
+            size="small"
+            sx={{
+              '& .MuiPaginationItem-root': { color: 'text.secondary' },
+              '& .Mui-selected': { bgcolor: 'rgba(255,255,255,0.1) !important', color: 'text.primary' },
+            }}
+          />
+        </Box>
       )}
     </Box>
   );
