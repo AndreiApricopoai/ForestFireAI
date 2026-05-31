@@ -119,16 +119,19 @@ export default function LoginPage() {
       }}
     >
       <Paper sx={{ width: '100%', maxWidth: 420, p: 4 }}>
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
-            <LocalFireDepartmentIcon sx={{ color: 'secondary.main', fontSize: 28 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary.light">
+        {/* Header */}
+        <Box sx={{ textAlign: 'center', mb: 3, pb: 3, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+            <LocalFireDepartmentIcon sx={{ color: '#ff0000', fontSize: 22 }} />
+            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary', letterSpacing: 0.5 }}>
               ForestFire AI
             </Typography>
           </Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>Welcome back</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Sign in to your monitoring account
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
+            Welcome back
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Sign in to continue
           </Typography>
         </Box>
 

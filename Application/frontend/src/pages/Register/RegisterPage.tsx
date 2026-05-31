@@ -150,16 +150,19 @@ export default function RegisterPage() {
       }}
     >
       <Paper sx={{ width: '100%', maxWidth: 420, p: 4 }}>
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
-            <LocalFireDepartmentIcon sx={{ color: 'secondary.main', fontSize: 28 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary.light">
+        {/* Header */}
+        <Box sx={{ textAlign: 'center', mb: 3, pb: 3, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+            <LocalFireDepartmentIcon sx={{ color: '#ff0000', fontSize: 22 }} />
+            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary', letterSpacing: 0.5 }}>
               ForestFire AI
             </Typography>
           </Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>Create account</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Start monitoring forest fire feeds
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
+            Create account
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Register to access the monitoring platform
           </Typography>
         </Box>
 
