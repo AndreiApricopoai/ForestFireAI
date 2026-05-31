@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Pagination,
   type SelectChangeEvent,
 } from '@mui/material';
 // CircularProgress intentionally omitted — unused
@@ -172,9 +173,6 @@ function AlertCard({ alert, cameraName, onAcknowledge, onResolve, onOpenImage }:
           <Typography variant="body2" color="text.secondary">
             <strong>Detected:</strong> {formatTimestamp(alert.detectionTimestamp)}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Created:</strong> {formatTimestamp(alert.createdAt)}
-          </Typography>
         </Stack>
 
         <Box sx={{ mt: 1.5 }}>
@@ -295,7 +293,9 @@ export default function AlertsPage() {
   const { alerts, isLoading, error } = useAppSelector((s) => s.alerts);
   const cameras = useAppSelector((s) => s.cameras.cameras);
 
+  const PAGE_SIZE = 9;
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [page, setPage] = useState(1);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState('');
 
@@ -381,6 +381,9 @@ export default function AlertsPage() {
   const filteredAlerts =
     statusFilter === 'all' ? alerts : alerts.filter((a) => a.status === statusFilter);
 
+  const totalPages = Math.max(1, Math.ceil(filteredAlerts.length / PAGE_SIZE));
+  const paginatedAlerts = filteredAlerts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <Box sx={{ p: 3 }}>
       {/* Page header */}
@@ -401,7 +404,7 @@ export default function AlertsPage() {
             <Select
               label="Status filter"
               value={statusFilter}
-              onChange={(e: SelectChangeEvent) => setStatusFilter(e.target.value)}
+              onChange={(e: SelectChangeEvent) => { setStatusFilter(e.target.value); setPage(1); }}
             >
               <MenuItem value="all">All</MenuItem>
               <MenuItem value="pending">Pending</MenuItem>
@@ -455,10 +458,10 @@ export default function AlertsPage() {
       {!isLoading && filteredAlerts.length > 0 && (
         <>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Showing {filteredAlerts.length} alert{filteredAlerts.length !== 1 ? 's' : ''}
+            Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filteredAlerts.length)} of {filteredAlerts.length} alert{filteredAlerts.length !== 1 ? 's' : ''}
           </Typography>
           <Grid container spacing={2}>
-            {filteredAlerts.map((alert) => (
+            {paginatedAlerts.map((alert) => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={alert.id}>
                 <Tooltip
                   title={`Camera ID: ${alert.cameraId}`}
@@ -479,6 +482,21 @@ export default function AlertsPage() {
               </Grid>
             ))}
           </Grid>
+
+          {totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, v) => setPage(v)}
+                size="small"
+                sx={{
+                  '& .MuiPaginationItem-root': { color: 'text.secondary' },
+                  '& .Mui-selected': { bgcolor: 'rgba(255,255,255,0.1) !important', color: 'text.primary' },
+                }}
+              />
+            </Box>
+          )}
         </>
       )}
 
