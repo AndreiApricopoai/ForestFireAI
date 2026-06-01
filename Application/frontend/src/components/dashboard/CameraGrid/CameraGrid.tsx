@@ -33,7 +33,6 @@ export default function CameraGrid({
   const [filterText, setFilterText] = useState('');
   const [page, setPage] = useState(1);
 
-  // Filter by name, location, region
   const filteredCameras = cameras.filter((cam) => {
     if (!filterText.trim()) return true;
     const query = filterText.toLowerCase();
@@ -44,20 +43,17 @@ export default function CameraGrid({
     );
   });
 
-  // Reset to page 1 whenever filter changes
   useEffect(() => {
     setPage(1);
   }, [filterText]);
 
   const totalPages = Math.max(1, Math.ceil(filteredCameras.length / PAGE_SIZE));
 
-  // Cameras visible on the current page
   const paginated = filteredCameras.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // Subscribe only to cameras currently on screen
   useEffect(() => {
     onVisibleCamerasChange(paginated.map((cam) => cam.id));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [paginated.map((c) => c.id).join(','), onVisibleCamerasChange]);
 
   if (isLoading) {
@@ -70,7 +66,7 @@ export default function CameraGrid({
 
   return (
     <Box>
-      {/* Filter bar — no camera count */}
+      {}
       <Box sx={{ mb: 2 }}>
         <TextField
           size="small"
@@ -90,7 +86,7 @@ export default function CameraGrid({
         />
       </Box>
 
-      {/* No cameras configured */}
+      {}
       {cameras.length === 0 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 10, gap: 2 }}>
           <VideocamOffIcon sx={{ fontSize: 64, color: 'rgba(255,255,255,0.1)' }} />
@@ -98,7 +94,7 @@ export default function CameraGrid({
         </Box>
       )}
 
-      {/* Filter returned nothing */}
+      {}
       {cameras.length > 0 && filteredCameras.length === 0 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 8, gap: 1 }}>
           <VideocamOffIcon sx={{ fontSize: 48, color: 'rgba(255,255,255,0.1)' }} />
@@ -111,7 +107,7 @@ export default function CameraGrid({
         </Box>
       )}
 
-      {/* Camera grid */}
+      {}
       {paginated.length > 0 && (
         <Grid container spacing={2}>
           {paginated.map((camera) => {
@@ -143,7 +139,7 @@ export default function CameraGrid({
         </Grid>
       )}
 
-      {/* Pagination */}
+      {}
       {totalPages > 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Pagination

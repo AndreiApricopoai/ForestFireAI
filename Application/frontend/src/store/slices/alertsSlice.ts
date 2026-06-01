@@ -2,9 +2,9 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { AlertRecord } from '../../types/alert.types';
 
 interface AlertsState {
-  /** All alerts loaded from the server, newest first */
+
   alerts: AlertRecord[];
-  /** Number of alerts received since the page was last visited */
+
   unreadCount: number;
   isLoading: boolean;
   error: string | null;
@@ -33,16 +33,16 @@ const alertsSlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     },
-    /** Called when a real-time alert:new WebSocket event arrives */
+
     addAlert(state, action: PayloadAction<AlertRecord>) {
-      state.alerts.unshift(action.payload); // prepend — newest first
+      state.alerts.unshift(action.payload);
       state.unreadCount += 1;
     },
-    /** Called when the admin visits /alerts — resets the badge */
+
     markAllRead(state) {
       state.unreadCount = 0;
     },
-    /** Update status of an alert after acknowledge/resolve action */
+
     updateAlertStatus(
       state,
       action: PayloadAction<{ id: string; status: AlertRecord['status']; note?: string }>,

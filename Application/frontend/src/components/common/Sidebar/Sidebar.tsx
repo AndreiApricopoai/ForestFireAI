@@ -58,7 +58,7 @@ export default function Sidebar() {
         },
       }}
     >
-      {/* Logo */}
+      {}
       <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.5, height: 64 }}>
         <LocalFireDepartmentIcon sx={{ color: '#ff0000', fontSize: 22, flexShrink: 0 }} />
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -155,7 +155,7 @@ export default function Sidebar() {
         </>
       )}
 
-      {/* User info + logout at bottom */}
+      {}
       <Box sx={{ mt: 'auto', px: 2, py: 1.5, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>

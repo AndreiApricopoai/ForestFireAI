@@ -23,7 +23,7 @@ const router = createBrowserRouter([
     element: <RegisterPage />,
   },
   {
-    // Routes accessible by any authenticated user
+
     element: <ProtectedRoute />,
     children: [
       {
@@ -42,7 +42,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    // Routes accessible by admin users only
+
     element: <ProtectedRoute requiredRole="admin" />,
     children: [
       {

@@ -36,20 +36,16 @@ interface Props {
   location: string;
   region?: string;
   isActive: boolean;
-  /** Path returned by the backend, e.g. "/snapshots/<id>_latest.jpg" */
+
   snapshotUrl?: string | null;
-  /**
-   * ISO timestamp of the latest detection.
-   * Used as a URL cache-buster so the browser fetches the new JPEG
-   * every time a detection arrives instead of showing a cached copy.
-   */
+
   lastUpdated?: string;
   riskLevel?: RiskLevel;
-  /** Highest confidence among all detections in the latest frame */
+
   maxConfidence?: number;
-  /** Total number of boxes detected in the latest frame */
+
   detectionCount?: number;
-  /** Called when the user clicks the card to open the detail dialog */
+
   onClick?: () => void;
 }
 
@@ -69,24 +65,10 @@ export default function CameraCard({
   const riskColor = RISK_COLORS[riskLevel];
   const isCritical = riskLevel === 'critical' || riskLevel === 'high';
 
-  /**
-   * Build the full URL for the annotated snapshot image.
-   *
-   * The snapshotUrl from the backend is a path like "/snapshots/<id>_latest.jpg".
-   * Prepend the API base URL so the browser can fetch it from NestJS.
-   *
-   * Append ?t=<timestamp> as a cache-buster: browsers cache images aggressively
-   * by URL. Every time a new detection arrives, lastUpdated changes, which changes
-   * the URL, which forces a fresh fetch even though the filename is always the same.
-   */
   const imageUrl = snapshotUrl
     ? `${API_URL}${snapshotUrl}?t=${lastUpdated ?? Date.now()}`
     : null;
 
-  /**
-   * Format the lastUpdated timestamp into a human-readable "last seen" string.
-   * Shows only the time portion (HH:MM:SS) since detections are recent.
-   */
   const lastSeenLabel = lastUpdated
     ? new Date(lastUpdated).toLocaleTimeString()
     : null;
@@ -107,7 +89,7 @@ export default function CameraCard({
         },
       }}
     >
-      {/* ── Image area ── */}
+      {}
       <Box sx={{ position: 'relative', bgcolor: '#000', aspectRatio: '16/9' }}>
         {imageUrl ? (
           <CardMedia
@@ -117,7 +99,7 @@ export default function CameraCard({
             sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
-          /* Placeholder shown before the first detection arrives */
+
           <Box
             sx={{
               width: '100%',
@@ -138,7 +120,7 @@ export default function CameraCard({
           </Box>
         )}
 
-        {/* LIVE / OFFLINE badge */}
+        {}
         <Box sx={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 0.5 }}>
           <Chip
             size="small"
@@ -153,7 +135,7 @@ export default function CameraCard({
           />
         </Box>
 
-        {/* Warning icon for high / critical risk */}
+        {}
         {isCritical && (
           <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
             {riskLevel === 'critical'
@@ -163,7 +145,7 @@ export default function CameraCard({
           </Box>
         )}
 
-        {/* Detection count badge — shown when YOLO found at least one object */}
+        {}
         {detectionCount !== undefined && detectionCount > 0 && (
           <Box sx={{ position: 'absolute', bottom: 8, right: 8 }}>
             <Chip
@@ -182,7 +164,7 @@ export default function CameraCard({
         )}
       </Box>
 
-      {/* ── Info area ── */}
+      {}
       <CardContent sx={{ flex: 1, p: 1.5, '&:last-child': { pb: 1.5 } }}>
         <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
           {name}
@@ -192,7 +174,7 @@ export default function CameraCard({
           {region ? `${location} · ${region}` : location}
         </Typography>
 
-        {/* Risk level chip + confidence percentage */}
+        {}
         <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Chip
             label={RISK_LABELS[riskLevel]}
@@ -213,7 +195,7 @@ export default function CameraCard({
           )}
         </Box>
 
-        {/* Confidence bar */}
+        {}
         {maxConfidence !== undefined && (
           <LinearProgress
             variant="determinate"
@@ -228,7 +210,7 @@ export default function CameraCard({
           />
         )}
 
-        {/* Last seen timestamp */}
+        {}
         {lastSeenLabel && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
             Last: {lastSeenLabel}

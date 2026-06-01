@@ -28,8 +28,6 @@ import { alertsApi } from '../../api/alerts/alerts.api';
 import { useSocketContext } from '../../contexts/SocketContext';
 import type { Camera } from '../../types/camera.types';
 
-// ── Risk level config ──────────────────────────────────────────────────────────
-
 const RISK_ORDER = ['critical', 'high', 'medium', 'low'] as const;
 const RISK_COLORS: Record<string, string> = {
   critical: '#b71c1c',
@@ -37,8 +35,6 @@ const RISK_COLORS: Record<string, string> = {
   medium:   '#ff9800',
   low:      '#8bc34a',
 };
-
-// ── Cameras stat card ──────────────────────────────────────────────────────────
 
 interface CamerasCardProps {
   total: number;
@@ -49,7 +45,7 @@ function CamerasCard({ total, active }: CamerasCardProps) {
   const inactive = total - active;
   return (
     <Paper sx={{ px: 2.5, py: 2, border: '1px solid rgba(255,255,255,0.07)', bgcolor: 'background.paper' }}>
-      {/* Header row: icon + count + label */}
+      {}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
         <VideocamIcon sx={{ fontSize: 28, color: '#64b5f6', flexShrink: 0 }} />
         <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1, color: 'text.primary' }}>
@@ -62,7 +58,7 @@ function CamerasCard({ total, active }: CamerasCardProps) {
 
       <Divider sx={{ mb: 1.5 }} />
 
-      {/* Breakdown */}
+      {}
       <Stack direction="row" spacing={3}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
           <Typography variant="body2" sx={{ fontWeight: 700, color: '#4caf50' }}>{active}</Typography>
@@ -77,8 +73,6 @@ function CamerasCard({ total, active }: CamerasCardProps) {
   );
 }
 
-// ── Alerts stat card ───────────────────────────────────────────────────────────
-
 interface AlertsCardProps {
   total: number;
   byRisk: Record<string, number>;
@@ -89,7 +83,7 @@ function AlertsCard({ total, byRisk }: AlertsCardProps) {
 
   return (
     <Paper sx={{ px: 2.5, py: 2, border: '1px solid rgba(255,255,255,0.07)', bgcolor: 'background.paper' }}>
-      {/* Header row: icon + count + label */}
+      {}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
         <NotificationsNoneIcon sx={{ fontSize: 28, color: total > 0 ? '#f44336' : 'text.secondary', flexShrink: 0 }} />
         <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1, color: total > 0 ? '#f44336' : 'text.primary' }}>
@@ -102,7 +96,7 @@ function AlertsCard({ total, byRisk }: AlertsCardProps) {
 
       <Divider sx={{ mb: 1.5 }} />
 
-      {/* Risk breakdown — all inline */}
+      {}
       {breakdown.length === 0 ? (
         <Typography variant="caption" color="text.secondary">No alerts recorded yet</Typography>
       ) : (
@@ -124,8 +118,6 @@ function AlertsCard({ total, byRisk }: AlertsCardProps) {
   );
 }
 
-// ── Dashboard page ─────────────────────────────────────────────────────────────
-
 export default function DashboardPage() {
   const dispatch = useAppDispatch();
   const { cameras, latestDetections, isLoading } = useAppSelector((s) => s.cameras);
@@ -136,7 +128,6 @@ export default function DashboardPage() {
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
   const { setSubscribedCameras } = useSocketContext();
 
-  // Load cameras on mount
   useEffect(() => {
     async function loadCameras() {
       dispatch(fetchCamerasStart());
@@ -156,7 +147,6 @@ export default function DashboardPage() {
     void loadCameras();
   }, [dispatch]);
 
-  // Load alerts on mount (admin only) — populates the risk breakdown card
   useEffect(() => {
     if (!isAdmin) return;
     dispatch(fetchAlertsStart());
@@ -173,11 +163,8 @@ export default function DashboardPage() {
     [setSubscribedCameras],
   );
 
-  // ── Derived stats ─────────────────────────────────────────────────────────────
-
   const activeCameras = cameras.filter((c) => c.isActive).length;
 
-  // Only count pending + acknowledged alerts (exclude resolved)
   const openAlerts = alerts.filter((a) => a.status !== 'resolved');
 
   const alertsByRisk: Record<string, number> = {};
@@ -187,11 +174,9 @@ export default function DashboardPage() {
     }
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────────
-
   return (
     <Box>
-      {/* Header */}
+      {}
       <Box sx={{ mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Live Monitoring
@@ -201,7 +186,7 @@ export default function DashboardPage() {
         </Typography>
       </Box>
 
-      {/* Stat cards */}
+      {}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: isAdmin ? 6 : 12 }}>
           <CamerasCard total={cameras.length} active={activeCameras} />

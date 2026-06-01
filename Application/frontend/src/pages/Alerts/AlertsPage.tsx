@@ -26,7 +26,6 @@ import {
   Pagination,
   type SelectChangeEvent,
 } from '@mui/material';
-// CircularProgress intentionally omitted — unused
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import CloudIcon from '@mui/icons-material/Cloud';
@@ -46,8 +45,6 @@ import { alertsApi } from '../../api/alerts/alerts.api';
 import type { AlertRecord, AlertStatus } from '../../types/alert.types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
 
 function formatTimestamp(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -80,8 +77,6 @@ function statusColor(status: AlertStatus): 'warning' | 'success' | 'default' {
   return 'default';
 }
 
-// ── Alert Card ─────────────────────────────────────────────────────────────────
-
 interface AlertCardProps {
   alert: AlertRecord;
   cameraName: string;
@@ -110,7 +105,7 @@ function AlertCard({ alert, cameraName, onAcknowledge, onResolve, onOpenImage }:
         height: '100%',
       }}
     >
-      {/* Annotated snapshot — click to open full-size lightbox */}
+      {}
       <Box
         sx={{ position: 'relative', cursor: 'pointer' }}
         onClick={() => onOpenImage(alert, cameraName)}
@@ -124,7 +119,7 @@ function AlertCard({ alert, cameraName, onAcknowledge, onResolve, onOpenImage }:
             (e.currentTarget as HTMLImageElement).style.display = 'none';
           }}
         />
-        {/* Hover overlay hint */}
+        {}
         <Box
           sx={{
             position: 'absolute',
@@ -144,7 +139,7 @@ function AlertCard({ alert, cameraName, onAcknowledge, onResolve, onOpenImage }:
       </Box>
 
       <CardContent sx={{ flex: 1, pb: 1 }}>
-        {/* Header row */}
+        {}
         <Stack direction="row" spacing={1} sx={{ mb: 1, alignItems: 'center' }}>
           {typeIcon(alert.type)}
           <Typography variant="subtitle2" sx={{ fontWeight: 700, flexGrow: 1 }}>
@@ -217,8 +212,6 @@ function AlertCard({ alert, cameraName, onAcknowledge, onResolve, onOpenImage }:
   );
 }
 
-// ── Image lightbox dialog ──────────────────────────────────────────────────────
-
 interface LightboxProps {
   alert: AlertRecord | null;
   cameraName: string;
@@ -286,8 +279,6 @@ function AlertLightbox({ alert, cameraName, onClose }: LightboxProps) {
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
-
 export default function AlertsPage() {
   const dispatch = useAppDispatch();
   const { alerts, isLoading, error } = useAppSelector((s) => s.alerts);
@@ -299,22 +290,17 @@ export default function AlertsPage() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState('');
 
-  // Lightbox state
   const [lightboxAlert, setLightboxAlert] = useState<AlertRecord | null>(null);
   const [lightboxCamera, setLightboxCamera] = useState('');
 
-  // Track the number of alerts at mount so we can detect newly pushed ones
   const initialAlertCount = useRef<number | null>(null);
 
-  // Map cameraId → cameraName for display
   const cameraMap = Object.fromEntries(cameras.map((c) => [c.id, c.name]));
 
-  // Mark all as read when visiting this page
   useEffect(() => {
     dispatch(markAllRead());
   }, [dispatch]);
 
-  // Fetch alert history on mount
   useEffect(() => {
     dispatch(fetchAlertsStart());
     alertsApi
@@ -329,10 +315,9 @@ export default function AlertsPage() {
       });
   }, [dispatch]);
 
-  // Show a toast when a new real-time alert arrives while the user is on this page
   const prevAlertCount = useRef(alerts.length);
   useEffect(() => {
-    if (initialAlertCount.current === null) return; // still loading
+    if (initialAlertCount.current === null) return;
     if (alerts.length > prevAlertCount.current) {
       const newest = alerts[0];
       const cam = cameraMap[newest?.cameraId] ?? 'a camera';
@@ -340,7 +325,7 @@ export default function AlertsPage() {
       setSnackbarOpen(true);
     }
     prevAlertCount.current = alerts.length;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [alerts.length]);
 
   const handleAcknowledge = useCallback(
@@ -386,7 +371,7 @@ export default function AlertsPage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Page header */}
+      {}
       <Stack direction="row" spacing={1.5} sx={{ mb: 3, alignItems: 'center' }}>
         <NotificationsActiveIcon color="secondary" />
         <Box>
@@ -415,14 +400,14 @@ export default function AlertsPage() {
         </Box>
       </Stack>
 
-      {/* Error */}
+      {}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
 
-      {/* Loading skeletons */}
+      {}
       {isLoading && (
         <Grid container spacing={2}>
           {Array.from({ length: 6 }).map((_, i) => (
@@ -433,7 +418,7 @@ export default function AlertsPage() {
         </Grid>
       )}
 
-      {/* Empty state */}
+      {}
       {!isLoading && !error && filteredAlerts.length === 0 && (
         <Box
           sx={{
@@ -454,7 +439,7 @@ export default function AlertsPage() {
         </Box>
       )}
 
-      {/* Alert grid */}
+      {}
       {!isLoading && filteredAlerts.length > 0 && (
         <>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -500,14 +485,14 @@ export default function AlertsPage() {
         </>
       )}
 
-      {/* Full-size image lightbox */}
+      {}
       <AlertLightbox
         alert={lightboxAlert}
         cameraName={lightboxCamera}
         onClose={() => setLightboxAlert(null)}
       />
 
-      {/* Action / notification snackbar */}
+      {}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}

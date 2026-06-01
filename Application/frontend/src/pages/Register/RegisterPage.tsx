@@ -19,8 +19,6 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch';
 import { loginStart, loginSuccess, loginFailure, clearError } from '../../store/slices/authSlice';
 import { authApi } from '../../api/auth/auth.api';
 
-// ── Validation helpers (mirror backend rules exactly) ────────────────────────
-
 function validateName(value: string): string {
   if (!value.trim()) return 'Name is required.';
   if (value.trim().length < 2) return 'Name must be at least 2 characters.';
@@ -46,8 +44,6 @@ function validateConfirmPassword(password: string, confirm: string): string {
   return '';
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function RegisterPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -59,13 +55,11 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Field-level validation errors
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
-  // Track whether each field has been interacted with
   const [nameTouched, setNameTouched] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
@@ -89,7 +83,7 @@ export default function RegisterPage() {
   const handlePasswordChange = (value: string) => {
     setPassword(value);
     if (passwordTouched) setPasswordError(validatePassword(value));
-    // Re-validate confirm if it was already touched
+
     if (confirmTouched) setConfirmPasswordError(validateConfirmPassword(value, confirmPassword));
   };
 
@@ -103,7 +97,6 @@ export default function RegisterPage() {
   const handlePasswordBlur = () => { setPasswordTouched(true); setPasswordError(validatePassword(password)); };
   const handleConfirmBlur = () => { setConfirmTouched(true); setConfirmPasswordError(validateConfirmPassword(password, confirmPassword)); };
 
-  // Run all validations before submitting
   const isFormValid = (): boolean => {
     const nErr = validateName(name);
     const eErr = validateEmail(email);
@@ -150,7 +143,7 @@ export default function RegisterPage() {
       }}
     >
       <Paper sx={{ width: '100%', maxWidth: 420, p: 4 }}>
-        {/* Header */}
+        {}
         <Box sx={{ textAlign: 'center', mb: 3, pb: 3, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
             <LocalFireDepartmentIcon sx={{ color: '#ff0000', fontSize: 22 }} />

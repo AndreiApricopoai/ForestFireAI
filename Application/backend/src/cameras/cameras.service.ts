@@ -15,10 +15,6 @@ export class CamerasService {
     @InjectModel(Camera.name) private cameraModel: Model<CameraDocument>,
   ) {}
 
-  /**
-   * Create a new camera document.
-   * The sourceUrl (video filename) must be unique.
-   */
   async create(dto: CreateCameraDto): Promise<Camera> {
     const existing = await this.cameraModel
       .findOne({ sourceUrl: dto.sourceUrl })
@@ -34,25 +30,14 @@ export class CamerasService {
     return camera.save();
   }
 
-  /**
-   * Return all cameras.
-   * The Python worker calls GET /cameras on startup to get active cameras.
-   */
   async findAll(): Promise<Camera[]> {
     return this.cameraModel.find().exec();
   }
 
-  /**
-   * Return only cameras with isActive = true.
-   * Convenience method used by the Python worker fetch.
-   */
   async findActive(): Promise<Camera[]> {
     return this.cameraModel.find({ isActive: true }).exec();
   }
 
-  /**
-   * Return a single camera by its MongoDB _id string.
-   */
   async findById(id: string): Promise<Camera> {
     const camera = await this.cameraModel.findById(id).exec();
 
@@ -63,9 +48,6 @@ export class CamerasService {
     return camera;
   }
 
-  /**
-   * Update camera fields (PATCH — only provided fields are changed).
-   */
   async update(id: string, dto: UpdateCameraDto): Promise<Camera> {
     const camera = await this.cameraModel
       .findByIdAndUpdate(id, dto, { returnDocument: 'after' })
@@ -78,9 +60,6 @@ export class CamerasService {
     return camera;
   }
 
-  /**
-   * Delete a camera document.
-   */
   async remove(id: string): Promise<void> {
     const result = await this.cameraModel.findByIdAndDelete(id).exec();
 
@@ -89,13 +68,6 @@ export class CamerasService {
     }
   }
 
-  /**
-   * Update the latestDetection field on a camera document.
-   *
-   * Called by DetectionsService every time the Python worker posts a new frame result.
-   * This overwrites the previous latestDetection — we do NOT keep a history here.
-   * If you need history, that goes in a separate detections collection (future feature).
-   */
   async updateLatestDetection(
     cameraId: string,
     latestDetection: {
@@ -121,10 +93,6 @@ export class CamerasService {
     return camera;
   }
 
-  /**
-   * Set the runtime status of a camera (active / inactive / error).
-   * Called by the Python worker when it starts or stops processing.
-   */
   async updateStatus(
     cameraId: string,
     status: 'active' | 'inactive' | 'error',

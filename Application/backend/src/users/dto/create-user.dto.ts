@@ -1,12 +1,6 @@
 import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 import { Role } from '../../common/enums/role.enum';
 
-/**
- * Data Transfer Object for creating a user.
- *
- * class-validator decorators define the validation rules.
- * NestJS's ValidationPipe runs these automatically on every request.
- */
 export class CreateUserDto {
   @IsString()
   @MinLength(2, { message: 'Name must be at least 2 characters.' })

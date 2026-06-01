@@ -7,19 +7,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 
-/**
- * WorkerAuthGuard — protects endpoints that should only be called by the
- * Python detection worker.
- *
- * The worker sends every request with:
- *   Authorization: Bearer <WORKER_TOKEN>
- *
- * NestJS compares that value against the WORKER_TOKEN environment variable.
- * If they match, the request is allowed through. No JWT, no DB lookup.
- *
- * The token never changes at runtime — rotate it by updating both .env files
- * and restarting both services.
- */
 @Injectable()
 export class WorkerAuthGuard implements CanActivate {
   constructor(private readonly configService: ConfigService) {}
@@ -32,7 +19,7 @@ export class WorkerAuthGuard implements CanActivate {
       throw new UnauthorizedException('Worker token missing.');
     }
 
-    const provided = authHeader.slice(7).trim(); // strip "Bearer "
+    const provided = authHeader.slice(7).trim();
     const expected = this.configService.get<string>('WORKER_TOKEN');
 
     if (!expected) {

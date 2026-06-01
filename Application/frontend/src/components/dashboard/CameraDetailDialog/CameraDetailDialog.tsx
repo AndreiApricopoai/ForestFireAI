@@ -39,13 +39,10 @@ const RISK_LABELS: Record<RiskLevel, string> = {
   critical: 'CRITICAL',
 };
 
-// ── Helper: extract the filename from a full OS path ──────────────────────────
 function filenameFromPath(fullPath: string): string {
-  // Works for both Windows backslashes and Unix forward slashes
+
   return fullPath.replace(/.*[/\\]/, '');
 }
-
-// ── Tab 1: Detection snapshot view ────────────────────────────────────────────
 
 interface DetectionViewProps {
   detection: LatestDetection | null;
@@ -67,7 +64,7 @@ function DetectionView({ detection, camera }: DetectionViewProps) {
 
   return (
     <Box>
-      {/* Large annotated snapshot */}
+      {}
       <Box sx={{ position: 'relative', bgcolor: '#000', borderRadius: 1, overflow: 'hidden' }}>
         {imageUrl ? (
           <CardMedia
@@ -95,7 +92,7 @@ function DetectionView({ detection, camera }: DetectionViewProps) {
           </Box>
         )}
 
-        {/* Risk badge overlay */}
+        {}
         <Box sx={{ position: 'absolute', top: 10, left: 10 }}>
           <Chip
             label={RISK_LABELS[riskLevel]}
@@ -110,7 +107,7 @@ function DetectionView({ detection, camera }: DetectionViewProps) {
         </Box>
       </Box>
 
-      {/* Detection metadata */}
+      {}
       <Box sx={{ mt: 2 }}>
         <Stack direction="row" sx={{ mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
           <Box sx={{ flex: 1, minWidth: 140 }}>
@@ -149,7 +146,7 @@ function DetectionView({ detection, camera }: DetectionViewProps) {
           </Box>
         </Stack>
 
-        {/* Confidence bar — color matches the class of the top detection */}
+        {}
         {topDetection && (
           <LinearProgress
             variant="determinate"
@@ -166,7 +163,7 @@ function DetectionView({ detection, camera }: DetectionViewProps) {
           />
         )}
 
-        {/* Per-object detection list */}
+        {}
         {detection?.detections && detection.detections.length > 0 && (
           <>
             <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mb: 1.5 }} />
@@ -226,11 +223,9 @@ function DetectionView({ detection, camera }: DetectionViewProps) {
   );
 }
 
-// ── Tab 2: Live video feed ─────────────────────────────────────────────────────
-
 interface LiveFeedProps {
   sourceUrl: string;
-  /** ms into the video to start from — syncs the browser to the drone's position */
+
   startAtMs?: number;
 }
 
@@ -239,18 +234,17 @@ function LiveFeed({ sourceUrl, startAtMs }: LiveFeedProps) {
   const filename = filenameFromPath(sourceUrl);
   const videoUrl = `${API_URL}/cameras/${filename}`;
 
-  // When the video metadata is loaded, seek to the last known drone position
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const handleLoaded = () => {
       if (startAtMs !== undefined && startAtMs > 0) {
-        const targetSec = (startAtMs / 1000) % video.duration; // handle loops
+        const targetSec = (startAtMs / 1000) % video.duration;
         video.currentTime = targetSec;
       }
       void video.play().catch(() => {
-        // Autoplay might be blocked — the user can press play manually
+
       });
     };
 
@@ -285,8 +279,6 @@ function LiveFeed({ sourceUrl, startAtMs }: LiveFeedProps) {
   );
 }
 
-// ── Dialog ─────────────────────────────────────────────────────────────────────
-
 interface Props {
   camera: Camera | null;
   onClose: () => void;
@@ -295,11 +287,9 @@ interface Props {
 export default function CameraDetailDialog({ camera, onClose }: Props) {
   const [tab, setTab] = useState(0);
 
-  // Always read the latest detection from Redux so Tab 1 stays live
   const latestDetections = useAppSelector((s) => s.cameras.latestDetections);
   const detection = camera ? (latestDetections[camera.id] ?? null) : null;
 
-  // Reset to Tab 1 every time a new camera is opened
   useEffect(() => {
     if (camera) setTab(0);
   }, [camera?.id]);
@@ -324,7 +314,7 @@ export default function CameraDetailDialog({ camera, onClose }: Props) {
         },
       }}
     >
-      {/* ── Header ── */}
+      {}
       <DialogTitle
         sx={{
           display: 'flex',
@@ -362,7 +352,7 @@ export default function CameraDetailDialog({ camera, onClose }: Props) {
         </Stack>
       </DialogTitle>
 
-      {/* ── Tabs ── */}
+      {}
       <Tabs
         value={tab}
         onChange={(_, v: number) => setTab(v)}
@@ -376,7 +366,7 @@ export default function CameraDetailDialog({ camera, onClose }: Props) {
         <Tab label="Live Feed" />
       </Tabs>
 
-      {/* ── Tab content ── */}
+      {}
       <DialogContent sx={{ pt: 2.5 }}>
         {tab === 0 && (
           <DetectionView detection={detection} camera={camera} />

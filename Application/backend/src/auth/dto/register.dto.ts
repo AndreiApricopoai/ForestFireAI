@@ -1,9 +1,5 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
-/**
- * Validation rules for the POST /auth/register endpoint.
- * These mirror the frontend validation exactly.
- */
 export class RegisterDto {
   @IsString({ message: 'Name must be a string.' })
   @MinLength(2, { message: 'Name must be at least 2 characters.' })

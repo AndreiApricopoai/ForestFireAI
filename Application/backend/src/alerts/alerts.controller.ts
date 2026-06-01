@@ -14,15 +14,6 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
 
-/**
- * AlertsController — exposes read and status-update endpoints for Alert documents.
- *
- * All routes are admin-only: JWT + Role guard enforced on every action.
- *
- * GET  /alerts              → return all alerts, newest first
- * GET  /alerts?cameraId=x  → return alerts for a specific camera
- * PATCH /alerts/:id         → update status (acknowledge / resolve) + optional note
- */
 @Controller('alerts')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)

@@ -1,9 +1,5 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
-/**
- * Validation rules for the POST /auth/login endpoint.
- * These mirror the frontend validation exactly.
- */
 export class LoginDto {
   @IsEmail({}, { message: 'Please provide a valid email address.' })
   email: string;

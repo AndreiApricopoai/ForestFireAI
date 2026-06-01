@@ -19,8 +19,6 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch';
 import { loginStart, loginSuccess, loginFailure, clearError } from '../../store/slices/authSlice';
 import { authApi } from '../../api/auth/auth.api';
 
-// ── Validation helpers (mirror backend rules) ────────────────────────────────
-
 function validateEmail(value: string): string {
   if (!value.trim()) return 'Email is required.';
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,8 +32,6 @@ function validatePassword(value: string): string {
   return '';
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function LoginPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -45,11 +41,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Field-level validation error messages
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Whether the user has interacted with the field (only show errors after first touch)
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
 
@@ -58,7 +52,6 @@ export default function LoginPage() {
     return () => { dispatch(clearError()); };
   }, [isAuthenticated, navigate, dispatch]);
 
-  // Validate on change only after the field has been touched once
   const handleEmailChange = (value: string) => {
     setEmail(value);
     if (emailTouched) setEmailError(validateEmail(value));
@@ -69,7 +62,6 @@ export default function LoginPage() {
     if (passwordTouched) setPasswordError(validatePassword(value));
   };
 
-  // Validate on blur (when user leaves the field)
   const handleEmailBlur = () => {
     setEmailTouched(true);
     setEmailError(validateEmail(email));
@@ -80,7 +72,6 @@ export default function LoginPage() {
     setPasswordError(validatePassword(password));
   };
 
-  // Run full validation before submitting
   const isFormValid = (): boolean => {
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
@@ -119,7 +110,7 @@ export default function LoginPage() {
       }}
     >
       <Paper sx={{ width: '100%', maxWidth: 420, p: 4 }}>
-        {/* Header */}
+        {}
         <Box sx={{ textAlign: 'center', mb: 3, pb: 3, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
             <LocalFireDepartmentIcon sx={{ color: '#ff0000', fontSize: 22 }} />

@@ -2,16 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Role } from '../../common/enums/role.enum';
 
-/**
- * UserDocument is the type that combines the User class with
- * Mongoose's Document type (adds _id, save(), etc.)
- */
 export type UserDocument = User & Document;
 
-/**
- * @Schema({ timestamps: true }) tells Mongoose to automatically add
- * createdAt and updatedAt fields to every document.
- */
 @Schema({ timestamps: true })
 export class User {
   @Prop({
@@ -23,19 +15,19 @@ export class User {
 
   @Prop({
     required: true,
-    unique: true,      // MongoDB creates a unique index on this field
-    lowercase: true,   // Always stored in lowercase
+    unique: true,     
+    lowercase: true,  
     trim: true,
   })
   email: string;
 
   @Prop({ required: true })
-  password: string; // Stored as a bcrypt hash, never plain text
+  password: string;
 
   @Prop({
     type: String,
-    enum: Object.values(Role), // Only allow values from the Role enum
-    default: Role.USER,        // New users get the 'user' role by default
+    enum: Object.values(Role),
+    default: Role.USER,       
   })
   role: Role;
 }

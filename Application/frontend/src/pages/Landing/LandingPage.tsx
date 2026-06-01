@@ -42,7 +42,7 @@ export default function LandingPage() {
         flexDirection: 'column',
       }}
     >
-      {/* ── Navbar ── */}
+      {}
       <Box
         component="nav"
         sx={{
@@ -78,7 +78,7 @@ export default function LandingPage() {
         </Button>
       </Box>
 
-      {/* ── Hero ── */}
+      {}
       <Container
         maxWidth="lg"
         sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', py: 10 }}
@@ -111,7 +111,7 @@ export default function LandingPage() {
           </Typography>
         </Box>
 
-        {/* ── Feature cards ── */}
+        {}
         <Box
           sx={{
             display: 'grid',
@@ -147,7 +147,7 @@ export default function LandingPage() {
         </Box>
       </Container>
 
-      {/* ── Footer ── */}
+      {}
       <Box sx={{ textAlign: 'center', py: 3, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <Typography variant="caption" color="text.secondary">
           ForestFire AI — Dissertation Project © 2026

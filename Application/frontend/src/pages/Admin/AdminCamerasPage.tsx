@@ -32,8 +32,6 @@ import { camerasApi } from '../../api/cameras/cameras.api';
 import type { Camera } from '../../types/camera.types';
 import type { CreateCameraRequest } from '../../api/cameras/cameras.types';
 
-// ── Form state type ────────────────────────────────────────────────────────────
-
 interface CameraFormData {
   name: string;
   location: string;
@@ -54,8 +52,6 @@ const EMPTY_FORM: CameraFormData = {
   confidenceThreshold: 0.45,
 };
 
-// ── Validation ────────────────────────────────────────────────────────────────
-
 function validateForm(data: CameraFormData): Record<string, string> {
   const errors: Record<string, string> = {};
   if (data.name.trim().length < 2) errors.name = 'Name must be at least 2 characters.';
@@ -69,8 +65,6 @@ function validateForm(data: CameraFormData): Record<string, string> {
   }
   return errors;
 }
-
-// ── Status chip helpers ────────────────────────────────────────────────────────
 
 function ActiveChip({ isActive }: { isActive: boolean }) {
   return (
@@ -89,14 +83,11 @@ function ActiveChip({ isActive }: { isActive: boolean }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
-
 export default function AdminCamerasPage() {
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
 
-  // ── Add / edit dialog ──────────────────────────────────────────────────────
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<Camera | null>(null);
   const [formData, setFormData] = useState<CameraFormData>(EMPTY_FORM);
@@ -104,11 +95,8 @@ export default function AdminCamerasPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // ── Delete dialog ──────────────────────────────────────────────────────────
   const [deleteTarget, setDeleteTarget] = useState<Camera | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  // ── Fetch cameras ──────────────────────────────────────────────────────────
 
   const loadCameras = useCallback(async () => {
     setLoading(true);
@@ -127,8 +115,6 @@ export default function AdminCamerasPage() {
     void loadCameras();
   }, [loadCameras]);
 
-  // ── Open add dialog ────────────────────────────────────────────────────────
-
   function openAddDialog() {
     setEditingCamera(null);
     setFormData(EMPTY_FORM);
@@ -136,8 +122,6 @@ export default function AdminCamerasPage() {
     setSaveError(null);
     setDialogOpen(true);
   }
-
-  // ── Open edit dialog ───────────────────────────────────────────────────────
 
   function openEditDialog(camera: Camera) {
     setEditingCamera(camera);
@@ -154,8 +138,6 @@ export default function AdminCamerasPage() {
     setSaveError(null);
     setDialogOpen(true);
   }
-
-  // ── Save (create or update) ────────────────────────────────────────────────
 
   async function handleSave() {
     const errors = validateForm(formData);
@@ -195,8 +177,6 @@ export default function AdminCamerasPage() {
     }
   }
 
-  // ── Toggle isActive ────────────────────────────────────────────────────────
-
   async function handleToggleActive(camera: Camera) {
     try {
       await camerasApi.update(camera.id, { isActive: !camera.isActive });
@@ -205,8 +185,6 @@ export default function AdminCamerasPage() {
       setPageError('Failed to update camera status.');
     }
   }
-
-  // ── Delete ─────────────────────────────────────────────────────────────────
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -222,11 +200,9 @@ export default function AdminCamerasPage() {
     }
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
   return (
     <Box>
-      {/* Header */}
+      {}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -252,7 +228,7 @@ export default function AdminCamerasPage() {
         </Alert>
       )}
 
-      {/* Cameras table */}
+      {}
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
           <CircularProgress />
@@ -315,7 +291,7 @@ export default function AdminCamerasPage() {
                   </TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
-                      {/* Toggle active/inactive */}
+                      {}
                       <Tooltip title={cam.isActive ? 'Deactivate' : 'Activate'}>
                         <IconButton
                           size="small"
@@ -326,7 +302,7 @@ export default function AdminCamerasPage() {
                         </IconButton>
                       </Tooltip>
 
-                      {/* Edit */}
+                      {}
                       <Tooltip title="Edit">
                         <IconButton
                           size="small"
@@ -337,7 +313,7 @@ export default function AdminCamerasPage() {
                         </IconButton>
                       </Tooltip>
 
-                      {/* Delete */}
+                      {}
                       <Tooltip title="Delete">
                         <IconButton
                           size="small"
@@ -356,7 +332,7 @@ export default function AdminCamerasPage() {
         </TableContainer>
       )}
 
-      {/* ── Add / Edit dialog ─────────────────────────────────────────────── */}
+      {}
       <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
@@ -497,7 +473,7 @@ export default function AdminCamerasPage() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Delete confirmation dialog ────────────────────────────────────── */}
+      {}
       <Dialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
