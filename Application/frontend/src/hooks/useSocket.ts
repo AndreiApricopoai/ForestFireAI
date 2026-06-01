@@ -49,6 +49,15 @@ export function useSocket() {
     socket.on('connect', () => {
       console.log('[Socket] Connected to NestJS — id:', socket.id);
 
+      // Re-subscribe to any camera rooms that were registered before the socket
+      // finished connecting (or after a reconnect). subscribedIds is the source
+      // of truth for what we WANT to be in — replay it on every connect.
+      if (subscribedIds.current.size > 0) {
+        const ids = [...subscribedIds.current];
+        socket.emit('subscribe', ids);
+        console.log('[Socket] Re-subscribed to camera rooms after connect:', ids);
+      }
+
       // Join the "admins" Socket.IO room so this client receives alert:new events
       if (isAdmin && !adminRoomJoined.current) {
         socket.emit('subscribeAlerts');
@@ -109,24 +118,28 @@ export function useSocket() {
    */
   const setSubscribedCameras = useCallback((newIds: string[]) => {
     const socket = socketRef.current;
-    if (!socket || !socket.connected) return;
-
     const current = subscribedIds.current;
     const incoming = new Set(newIds);
 
     const toUnsubscribe = [...current].filter((id) => !incoming.has(id));
     const toSubscribe = newIds.filter((id) => !current.has(id));
 
-    if (toUnsubscribe.length > 0) {
-      socket.emit('unsubscribe', toUnsubscribe);
-      toUnsubscribe.forEach((id) => current.delete(id));
-      console.log('[Socket] Unsubscribed from rooms:', toUnsubscribe);
-    }
+    // Always update the ref regardless of connection state.
+    // If the socket isn't connected yet, the 'connect' handler above will
+    // replay the full subscribedIds set once the connection is established.
+    toUnsubscribe.forEach((id) => current.delete(id));
+    toSubscribe.forEach((id) => current.add(id));
 
-    if (toSubscribe.length > 0) {
-      socket.emit('subscribe', toSubscribe);
-      toSubscribe.forEach((id) => current.add(id));
-      console.log('[Socket] Subscribed to rooms:', toSubscribe);
+    // Only emit right now if already connected — otherwise the connect handler takes care of it
+    if (socket && socket.connected) {
+      if (toUnsubscribe.length > 0) {
+        socket.emit('unsubscribe', toUnsubscribe);
+        console.log('[Socket] Unsubscribed from rooms:', toUnsubscribe);
+      }
+      if (toSubscribe.length > 0) {
+        socket.emit('subscribe', toSubscribe);
+        console.log('[Socket] Subscribed to rooms:', toSubscribe);
+      }
     }
   }, []);
 
