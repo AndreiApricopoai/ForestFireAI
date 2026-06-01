@@ -58,6 +58,16 @@ IOU_THRESHOLD = float(os.getenv("IOU_THRESHOLD", "0.45"))
 
 
 # -----------------------------------------------------------------------
+# Authentication
+# -----------------------------------------------------------------------
+
+# Shared secret token sent in every request to NestJS.
+# Must match the WORKER_TOKEN value in the backend .env exactly.
+# NestJS validates this via WorkerAuthGuard — requests without it return 401.
+WORKER_TOKEN = os.getenv("WORKER_TOKEN", "")
+
+
+# -----------------------------------------------------------------------
 # This service
 # -----------------------------------------------------------------------
 

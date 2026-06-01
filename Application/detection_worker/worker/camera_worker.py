@@ -20,6 +20,7 @@ from config import (
     BACKEND_URL,
     ANALYSIS_INTERVAL_SECONDS,
     CONFIDENCE_THRESHOLD,
+    WORKER_TOKEN,
 )
 
 
@@ -258,12 +259,20 @@ class CameraWorker:
     def _send_detection(self, payload):
         """
         Send the detection result to the NestJS backend via HTTP POST.
+        Every request carries the shared WORKER_TOKEN so NestJS can verify
+        that only the authorised worker service can write detection data.
         If NestJS is not reachable, we log the error and continue — we do not crash.
         """
         url = f"{BACKEND_URL}/detections"
 
+        # Attach the shared secret in the Authorization header.
+        # NestJS WorkerAuthGuard compares this against its own WORKER_TOKEN env var.
+        headers = {
+            "Authorization": f"Bearer {WORKER_TOKEN}"
+        }
+
         try:
-            response = requests.post(url, json=payload, timeout=5)
+            response = requests.post(url, json=payload, headers=headers, timeout=5)
 
             if response.status_code in (200, 201):
                 detection_count = len(payload["detections"])
