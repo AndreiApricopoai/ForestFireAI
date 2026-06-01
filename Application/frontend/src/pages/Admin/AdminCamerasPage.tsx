@@ -89,25 +89,6 @@ function ActiveChip({ isActive }: { isActive: boolean }) {
   );
 }
 
-function WorkerChip({ status }: { status: string }) {
-  const color =
-    status === 'active' ? '#4caf50' : status === 'error' ? '#f44336' : '#888';
-  return (
-    <Chip
-      label={status}
-      size="small"
-      sx={{
-        height: 20,
-        fontSize: 11,
-        textTransform: 'capitalize',
-        bgcolor: `${color}18`,
-        color,
-        border: `1px solid ${color}44`,
-      }}
-    />
-  );
-}
-
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function AdminCamerasPage() {
@@ -287,14 +268,13 @@ export default function AdminCamerasPage() {
                 <TableCell align="center">Interval (s)</TableCell>
                 <TableCell align="center">Confidence</TableCell>
                 <TableCell align="center">Active</TableCell>
-                <TableCell align="center">Worker</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {cameras.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                     No cameras yet. Click &quot;Add Camera&quot; to create one.
                   </TableCell>
                 </TableRow>
@@ -332,9 +312,6 @@ export default function AdminCamerasPage() {
                   </TableCell>
                   <TableCell align="center">
                     <ActiveChip isActive={cam.isActive} />
-                  </TableCell>
-                  <TableCell align="center">
-                    <WorkerChip status={cam.status} />
                   </TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
