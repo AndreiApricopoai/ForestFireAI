@@ -1,22 +1,7 @@
-/**
- * seed.ts — One-time database seed script.
- *
- * Run with:
- *   npx ts-node src/seed.ts
- *
- * What it does:
- *   1. Connects to MongoDB using the same URI as the app
- *   2. Creates an admin user (if one doesn't exist yet)
- *   3. Creates 3 camera documents matching the videos in the cameras/ folder
- *
- * Safe to run multiple times — uses upsert/findOrCreate logic.
- */
-
 import 'dotenv/config';
 import mongoose from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
-// ─── MongoDB URIs ────────────────────────────────────────────────────────────
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -24,8 +9,6 @@ if (!MONGODB_URI) {
   console.error('ERROR: MONGODB_URI is not set in .env');
   process.exit(1);
 }
-
-// ─── Minimal schemas (mirror the app schemas) ────────────────────────────────
 
 const UserSchema = new mongoose.Schema({
   name: String,
@@ -49,8 +32,6 @@ const CameraSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// ─── Seed data ───────────────────────────────────────────────────────────────
-
 const ADMIN_USER = {
   name: 'Admin',
   email: 'admin@forestfire.dev',
@@ -58,10 +39,6 @@ const ADMIN_USER = {
   role: 'admin',
 };
 
-/**
- * The sourceUrl must match the filename inside the cameras/ folder exactly.
- * The Python worker builds the full path:  CAMERAS_FOLDER + sourceUrl
- */
 const CAMERAS = [
   {
     name: 'Camera 1 — Forest North',
@@ -92,7 +69,6 @@ const CAMERAS = [
   },
 ];
 
-// ─── Main ────────────────────────────────────────────────────────────────────
 
 async function seed() {
   console.log('Connecting to MongoDB...');
@@ -102,7 +78,6 @@ async function seed() {
   const UserModel = mongoose.model('User', UserSchema);
   const CameraModel = mongoose.model('Camera', CameraSchema);
 
-  // ── Admin user ──────────────────────────────────────────────────────────────
   const existingAdmin = await UserModel.findOne({ email: ADMIN_USER.email });
 
   if (existingAdmin) {
@@ -117,7 +92,6 @@ async function seed() {
 
   console.log();
 
-  // ── Cameras ─────────────────────────────────────────────────────────────────
   for (const cam of CAMERAS) {
     const existing = await CameraModel.findOne({ sourceUrl: cam.sourceUrl });
 
